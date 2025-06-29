@@ -1,0 +1,55 @@
+{
+  "name": "carbon-credit-marketplace",
+  "version": "1.0.0",
+  "description": "Decentralized Carbon Credit Marketplace for Micro-Projects with On-Chain Verification",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "build": "npm run build:backend && npm run build:frontend",
+    "build:backend": "cd backend && npm run build",
+    "build:frontend": "cd frontend && npm run build",
+    "test": "npm run test:contracts && npm run test:backend && npm run test:frontend",
+    "test:contracts": "cd contracts && sui move test",
+    "test:backend": "cd backend && npm test",
+    "test:frontend": "cd frontend && npm test",
+    "deploy": "npm run deploy:contracts && npm run deploy:backend",
+    "deploy:contracts": "cd contracts && sui move publish",
+    "deploy:backend": "cd backend && npm run deploy",
+    "lint": "npm run lint:backend && npm run lint:frontend",
+    "lint:backend": "cd backend && npm run lint",
+    "lint:frontend": "cd frontend && npm run lint",
+    "format": "prettier --write .",
+    "setup": "npm install && cd backend && npm install && cd ../frontend && npm install && cd ../mobile && npm install"
+  },
+  "keywords": [
+    "carbon-credits",
+    "blockchain",
+    "sui",
+    "climate-finance",
+    "micro-projects",
+    "dMRV",
+    "sustainability"
+  ],
+  "author": "Carbon Credit Marketplace Team",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "prettier": "^3.1.1",
+    "husky": "^8.0.3",
+    "lint-staged": "^15.2.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/carbon-marketplace/carbon-credit-marketplace.git"
+  },
+  "bugs": {
+    "url": "https://github.com/carbon-marketplace/carbon-credit-marketplace/issues"
+  },
+  "homepage": "https://github.com/carbon-marketplace/carbon-credit-marketplace#readme"
+} 

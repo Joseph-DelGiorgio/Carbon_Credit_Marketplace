@@ -1,0 +1,21 @@
+[package]
+name = "carbon_marketplace"
+version = "1.0.0"
+edition = "2024.beta"
+
+[dependencies]
+Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "framework/testnet" }
+
+[addresses]
+carbon_marketplace = "0x0"
+
+[dev-dependencies]
+Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "framework/testnet" }
+
+[profile.default]
+opt-level = 0
+debug = true
+
+[profile.release]
+opt-level = 3
+debug = false 
