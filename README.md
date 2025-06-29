@@ -140,9 +140,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Contact
 
-- **Email**: contact@carbonmarketplace.com
-- **Discord**: [Join our community](https://discord.gg/carbonmarketplace)
-- **Twitter**: [@CarbonMarketplace](https://twitter.com/CarbonMarketplace)
+- **Email**: jojodelg@gmail.com
 
 ---
 
