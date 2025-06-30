@@ -4,18 +4,9 @@ version = "1.0.0"
 edition = "2024.beta"
 
 [dependencies]
-Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "framework/testnet" }
+Sui = { local = "../sui/crates/sui-framework/packages/sui-framework" }
+MoveStdlib = { local = "../sui/crates/sui-framework/packages/move-stdlib" }
+Bridge = { local = "../sui/crates/sui-framework/packages/bridge" }
 
 [addresses]
-carbon_marketplace = "0x0"
-
-[dev-dependencies]
-Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "framework/testnet" }
-
-[profile.default]
-opt-level = 0
-debug = true
-
-[profile.release]
-opt-level = 3
-debug = false 
+carbon_marketplace = "0x0" 
