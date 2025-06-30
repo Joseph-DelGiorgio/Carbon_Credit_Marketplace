@@ -10,9 +10,9 @@ import {
   Menu,
   X,
   Leaf,
-  Wallet,
   Bell
 } from 'lucide-react';
+import WalletConnect from '../WalletConnect/WalletConnect';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -139,10 +139,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             {/* Right side actions */}
             <div className="flex items-center space-x-4">
               {/* Wallet connection */}
-              <button className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
-                <Wallet className="w-4 h-4 mr-2" />
-                Connect Wallet
-              </button>
+              <WalletConnect />
 
               {/* Notifications */}
               <button className="relative p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
