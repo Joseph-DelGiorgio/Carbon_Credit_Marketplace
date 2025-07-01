@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link, NavLink } from 'react-router-dom';
+import { ConnectButton } from '@mysten/dapp-kit';
 
 const Navbar: React.FC = () => {
   return (
@@ -9,6 +10,9 @@ const Navbar: React.FC = () => {
         <NavLink to="/" className={({ isActive }) => isActive ? 'text-green-700 font-semibold' : 'text-gray-700 hover:text-green-700'}>Marketplace</NavLink>
         <NavLink to="/dashboard" className={({ isActive }) => isActive ? 'text-green-700 font-semibold' : 'text-gray-700 hover:text-green-700'}>Dashboard</NavLink>
         <NavLink to="/about" className={({ isActive }) => isActive ? 'text-green-700 font-semibold' : 'text-gray-700 hover:text-green-700'}>About</NavLink>
+      </div>
+      <div className="flex items-center space-x-4">
+        <ConnectButton />
       </div>
       {/* Mobile menu placeholder */}
       <div className="md:hidden">
