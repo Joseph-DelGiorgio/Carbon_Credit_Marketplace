@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react';
 import { useCurrentAccount, useSignAndExecuteTransaction } from '@mysten/dapp-kit';
-import { JsonRpcProvider, TransactionBlock } from '@mysten/sui';
+import { SuiClient } from '@mysten/sui/client';
+import { Transaction } from '@mysten/sui/transactions';
 
 // Contract addresses (will be updated after deployment)
 const PACKAGE_ID = '0x...'; // Replace with actual package ID after deployment
@@ -50,11 +51,12 @@ export interface CreditListing {
 
 export const useSmartContracts = () => {
   const currentAccount = useCurrentAccount();
-  const { mutateAsync: signAndExecuteTransactionBlock } = useSignAndExecuteTransaction();
+  const { mutateAsync: signAndExecuteTransaction } = useSignAndExecuteTransaction();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const provider = new JsonRpcProvider();
+  // Use SuiClient from @mysten/sui/client
+  const provider = new SuiClient({ url: 'https://fullnode.testnet.sui.io:443' });
 
   // Initialize developer capability
   const initializeDeveloperCap = useCallback(async () => {
@@ -64,12 +66,12 @@ export const useSmartContracts = () => {
     setError(null);
 
     try {
-      const tx = new TransactionBlock();
+      const tx = new Transaction();
       tx.moveCall({
         target: `${PACKAGE_ID}::${MODULE_NAME}::initialize_developer_cap`,
       });
 
-      const result = await signAndExecuteTransactionBlock({
+      const result = await signAndExecuteTransaction({
         transaction: tx,
       });
 
@@ -80,7 +82,7 @@ export const useSmartContracts = () => {
     } finally {
       setLoading(false);
     }
-  }, [currentAccount, signAndExecuteTransactionBlock]);
+  }, [currentAccount, signAndExecuteTransaction]);
 
   // Create a new project
   const createProject = useCallback(async (projectData: {
@@ -101,29 +103,27 @@ export const useSmartContracts = () => {
     setError(null);
 
     try {
-      const tx = new TransactionBlock();
-      
+      const tx = new Transaction();
       // Add capability object (assuming user has it)
       const cap = tx.object('0x...'); // Replace with actual capability object ID
-      
       tx.moveCall({
         target: `${PACKAGE_ID}::${MODULE_NAME}::create_project`,
         arguments: [
           cap,
-          tx.pure(projectData.name),
-          tx.pure(projectData.location),
-          tx.pure(projectData.projectType),
-          tx.pure(projectData.description),
-          tx.pure(projectData.totalCredits),
-          tx.pure(projectData.pricePerCredit),
-          tx.pure(projectData.coBenefits),
-          tx.pure(projectData.sdgGoals),
-          tx.pure(projectData.fundingGoal),
-          tx.pure(projectData.metadata),
+          tx.pure.string(projectData.name),
+          tx.pure.string(projectData.location),
+          tx.pure.string(projectData.projectType),
+          tx.pure.string(projectData.description),
+          tx.pure.u64(projectData.totalCredits),
+          tx.pure.u64(projectData.pricePerCredit),
+          tx.pure.vector('string', projectData.coBenefits),
+          tx.pure.vector('u8', projectData.sdgGoals),
+          tx.pure.u64(projectData.fundingGoal),
+          tx.pure.string(projectData.metadata),
         ],
       });
 
-      const result = await signAndExecuteTransactionBlock({
+      const result = await signAndExecuteTransaction({
         transaction: tx,
       });
 
@@ -134,7 +134,7 @@ export const useSmartContracts = () => {
     } finally {
       setLoading(false);
     }
-  }, [currentAccount, signAndExecuteTransactionBlock]);
+  }, [currentAccount, signAndExecuteTransaction]);
 
   // Mint carbon credits
   const mintCredits = useCallback(async (
@@ -148,22 +148,20 @@ export const useSmartContracts = () => {
     setError(null);
 
     try {
-      const tx = new TransactionBlock();
-      
+      const tx = new Transaction();
       const cap = tx.object('0x...'); // Replace with actual capability object ID
       const project = tx.object(projectId);
-      
       tx.moveCall({
         target: `${PACKAGE_ID}::${MODULE_NAME}::mint_credits`,
         arguments: [
           cap,
           project,
-          tx.pure(co2Kg),
-          tx.pure(metadata),
+          tx.pure.u64(co2Kg),
+          tx.pure.string(metadata),
         ],
       });
 
-      const result = await signAndExecuteTransactionBlock({
+      const result = await signAndExecuteTransaction({
         transaction: tx,
       });
 
@@ -174,7 +172,7 @@ export const useSmartContracts = () => {
     } finally {
       setLoading(false);
     }
-  }, [currentAccount, signAndExecuteTransactionBlock]);
+  }, [currentAccount, signAndExecuteTransaction]);
 
   // Buy credits from listing
   const buyCredits = useCallback(async (
@@ -187,17 +185,15 @@ export const useSmartContracts = () => {
     setError(null);
 
     try {
-      const tx = new TransactionBlock();
-      
+      const tx = new Transaction();
       const listing = tx.object(listingId);
       const payment = tx.splitCoins(tx.gas, [paymentAmount]);
-      
       tx.moveCall({
         target: `${PACKAGE_ID}::${MODULE_NAME}::buy_credits`,
         arguments: [listing, payment],
       });
 
-      const result = await signAndExecuteTransactionBlock({
+      const result = await signAndExecuteTransaction({
         transaction: tx,
       });
 
@@ -208,7 +204,7 @@ export const useSmartContracts = () => {
     } finally {
       setLoading(false);
     }
-  }, [currentAccount, signAndExecuteTransactionBlock]);
+  }, [currentAccount, signAndExecuteTransaction]);
 
   // Retire credits
   const retireCredits = useCallback(async (
@@ -221,19 +217,17 @@ export const useSmartContracts = () => {
     setError(null);
 
     try {
-      const tx = new TransactionBlock();
-      
+      const tx = new Transaction();
       const credit = tx.object(creditId);
-      
       tx.moveCall({
         target: `${PACKAGE_ID}::${MODULE_NAME}::retire_credit`,
         arguments: [
           credit,
-          tx.pure(retirementReason),
+          tx.pure.string(retirementReason),
         ],
       });
 
-      const result = await signAndExecuteTransactionBlock({
+      const result = await signAndExecuteTransaction({
         transaction: tx,
       });
 
@@ -244,7 +238,7 @@ export const useSmartContracts = () => {
     } finally {
       setLoading(false);
     }
-  }, [currentAccount, signAndExecuteTransactionBlock]);
+  }, [currentAccount, signAndExecuteTransaction]);
 
   // Query projects
   const getProjects = useCallback(async (): Promise<Project[]> => {

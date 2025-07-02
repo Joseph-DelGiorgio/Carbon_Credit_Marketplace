@@ -1,22 +1,20 @@
 import React from 'react';
 
-const StatsBar: React.FC = () => {
-  return (
-    <div className="flex gap-6 mb-8">
-      <div className="bg-white rounded shadow px-6 py-4 flex-1 text-center">
-        <div className="text-2xl font-bold">2,500</div>
-        <div className="text-gray-500 text-sm">Total Credits</div>
-      </div>
-      <div className="bg-white rounded shadow px-6 py-4 flex-1 text-center">
-        <div className="text-2xl font-bold">$25,000</div>
-        <div className="text-gray-500 text-sm">Total Volume</div>
-      </div>
-      <div className="bg-white rounded shadow px-6 py-4 flex-1 text-center">
-        <div className="text-2xl font-bold">3</div>
-        <div className="text-gray-500 text-sm">Projects</div>
-      </div>
+const StatsBar = () => (
+  <div className="flex gap-6 bg-white rounded-lg shadow p-4 border border-neutral">
+    <div>
+      <div className="text-primary text-xl font-bold">2</div>
+      <div className="text-xs text-gray-500">Projects</div>
     </div>
-  );
-};
+    <div>
+      <div className="text-accent text-xl font-bold">1,500</div>
+      <div className="text-xs text-gray-500">Credits Available</div>
+    </div>
+    <div>
+      <div className="text-primary text-xl font-bold">$13.25</div>
+      <div className="text-xs text-gray-500">Avg Price</div>
+    </div>
+  </div>
+);
 
 export default StatsBar; 

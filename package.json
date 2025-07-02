@@ -35,10 +35,11 @@
   "author": "Carbon Credit Marketplace Team",
   "license": "MIT",
   "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.11",
     "concurrently": "^8.2.2",
-    "prettier": "^3.1.1",
     "husky": "^8.0.3",
-    "lint-staged": "^15.2.0"
+    "lint-staged": "^15.2.0",
+    "prettier": "^3.1.1"
   },
   "engines": {
     "node": ">=18.0.0",
@@ -52,4 +53,4 @@
     "url": "https://github.com/carbon-marketplace/carbon-credit-marketplace/issues"
   },
   "homepage": "https://github.com/carbon-marketplace/carbon-credit-marketplace#readme"
-} 
+}
