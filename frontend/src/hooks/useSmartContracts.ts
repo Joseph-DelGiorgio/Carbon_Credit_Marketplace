@@ -1,7 +1,12 @@
 import { useSuiClient, useCurrentAccount, useSignAndExecuteTransactionBlock } from '@mysten/dapp-kit';
-import { Transaction } from '@mysten/sui/transactions';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
+
+// Deployed contract addresses
+const PACKAGE_ID = '0x39cd874b2aa262082baaaab414c049b0dcfcef75f7770c20a576f0c976f66a34';
+const UPGRADE_CAP_ID = '0x5bc2be0185e8274511f8229bb5d05d3eab8aa3b13e6069e8fb1c8235d4cb8133';
+
+// Module names
+const CARBON_CREDIT_MODULE = 'carbon_credit';
 
 // Types based on the Move contract
 export interface Project {
@@ -46,326 +51,222 @@ export interface CreditListing {
   createdAt: number;
 }
 
-// Contract configuration
-const PACKAGE_ID = '0x...'; // Will be set after deployment
-const MODULE_NAME = 'carbon_credit';
+export interface CarbonProject {
+  id: string;
+  name: string;
+  description: string;
+  location: string;
+  project_type: string;
+  total_credits: number;
+  available_credits: number;
+  price_per_credit: number;
+  developer: string;
+  verification_status: string;
+  created_at: number;
+}
 
-export const useSmartContracts = () => {
+export interface CarbonCredit {
+  id: string;
+  project_id: string;
+  amount: number;
+  price: number;
+  seller: string;
+  buyer?: string;
+  status: 'available' | 'sold' | 'retired';
+  created_at: number;
+}
+
+export function useSmartContracts() {
   const client = useSuiClient();
   const account = useCurrentAccount();
   const { mutateAsync: signAndExecute } = useSignAndExecuteTransactionBlock();
   const queryClient = useQueryClient();
 
-  // Query: Get all projects
-  const useProjects = () => {
-    return useQuery({
-      queryKey: ['projects'],
-      queryFn: async () => {
-        // For now, return mock data until we have proper object parsing
-        // In production, you'd use client.getOwnedObjects() or client.getObject()
-        return [] as Project[];
-      },
-      enabled: !!PACKAGE_ID
-    });
-  };
+  // Initialize marketplace
+  const initializeMarketplace = useMutation({
+    mutationFn: async () => {
+      if (!account?.address) throw new Error('Wallet not connected');
+      
+      const tx = {
+        kind: 'moveCall' as const,
+        data: {
+          target: `${PACKAGE_ID}::${CARBON_CREDIT_MODULE}::initialize_marketplace`,
+          arguments: [UPGRADE_CAP_ID]
+        }
+      };
+      
+      return signAndExecute({ transactionBlock: tx });
+    }
+  });
 
-  // Query: Get all carbon credits
-  const useCarbonCredits = () => {
-    return useQuery({
-      queryKey: ['carbonCredits'],
-      queryFn: async () => {
-        // For now, return mock data until we have proper object parsing
-        return [] as CarbonCredit[];
-      },
-      enabled: !!PACKAGE_ID
-    });
-  };
+  // Create carbon project
+  const createProject = useMutation({
+    mutationFn: async ({ 
+      name, 
+      description, 
+      location, 
+      projectType, 
+      totalCredits, 
+      pricePerCredit
+    }: {
+      name: string;
+      description: string;
+      location: string;
+      projectType: string;
+      totalCredits: number;
+      pricePerCredit: number;
+    }) => {
+      if (!account?.address) throw new Error('Wallet not connected');
+      
+      const tx = {
+        kind: 'moveCall' as const,
+        data: {
+          target: `${PACKAGE_ID}::${CARBON_CREDIT_MODULE}::create_project`,
+          arguments: [name, description, location, projectType, totalCredits, pricePerCredit]
+        }
+      };
+      
+      return signAndExecute({ transactionBlock: tx });
+    }
+  });
 
-  // Query: Get all listings
-  const useListings = () => {
-    return useQuery({
-      queryKey: ['listings'],
-      queryFn: async () => {
-        // For now, return mock data until we have proper object parsing
-        return [] as CreditListing[];
-      },
-      enabled: !!PACKAGE_ID
-    });
-  };
+  // List carbon credits for sale
+  const listCredits = useMutation({
+    mutationFn: async ({ 
+      projectId, 
+      amount, 
+      price
+    }: {
+      projectId: string;
+      amount: number;
+      price: number;
+    }) => {
+      if (!account?.address) throw new Error('Wallet not connected');
+      
+      const tx = {
+        kind: 'moveCall' as const,
+        data: {
+          target: `${PACKAGE_ID}::${CARBON_CREDIT_MODULE}::list_credits`,
+          arguments: [projectId, amount, price]
+        }
+      };
+      
+      return signAndExecute({ transactionBlock: tx });
+    }
+  });
 
-  // Mutation: Initialize developer capability
-  const useInitializeDeveloperCap = () => {
-    return useMutation({
-      mutationFn: async () => {
-        if (!account?.address) throw new Error('Wallet not connected');
-        
-        const tx = new Transaction();
-        tx.moveCall({
-          target: `${PACKAGE_ID}::${MODULE_NAME}::initialize_developer_cap`,
-          arguments: []
-        });
+  // Buy carbon credits
+  const buyCredits = useMutation({
+    mutationFn: async ({ 
+      listingId, 
+      amount
+    }: {
+      listingId: string;
+      amount: number;
+    }) => {
+      if (!account?.address) throw new Error('Wallet not connected');
+      
+      const tx = {
+        kind: 'moveCall' as const,
+        data: {
+          target: `${PACKAGE_ID}::${CARBON_CREDIT_MODULE}::buy_credits`,
+          arguments: [listingId, amount]
+        }
+      };
+      
+      return signAndExecute({ transactionBlock: tx });
+    }
+  });
 
-        const result = await signAndExecute({
-          transactionBlock: tx,
-        });
+  // Retire carbon credits
+  const retireCredits = useMutation({
+    mutationFn: async ({ 
+      creditId, 
+      reason
+    }: {
+      creditId: string;
+      reason: string;
+    }) => {
+      if (!account?.address) throw new Error('Wallet not connected');
+      
+      const tx = {
+        kind: 'moveCall' as const,
+        data: {
+          target: `${PACKAGE_ID}::${CARBON_CREDIT_MODULE}::retire_credits`,
+          arguments: [creditId, reason]
+        }
+      };
+      
+      return signAndExecute({ transactionBlock: tx });
+    }
+  });
 
-        return result;
-      },
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ['capabilities'] });
-      }
-    });
-  };
-
-  // Mutation: Initialize verifier capability
-  const useInitializeVerifierCap = () => {
-    return useMutation({
-      mutationFn: async () => {
-        if (!account?.address) throw new Error('Wallet not connected');
-        
-        const tx = new Transaction();
-        tx.moveCall({
-          target: `${PACKAGE_ID}::${MODULE_NAME}::initialize_verifier_cap`,
-          arguments: []
-        });
-
-        const result = await signAndExecute({
-          transactionBlock: tx,
-        });
-
-        return result;
-      },
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ['capabilities'] });
-      }
-    });
-  };
-
-  // Mutation: Create project
-  const useCreateProject = () => {
-    return useMutation({
-      mutationFn: async (projectData: {
-        name: string;
-        location: string;
-        projectType: string;
-        description: string;
-        totalCredits: number;
-        pricePerCredit: number;
-        coBenefits: string[];
-        sdgGoals: number[];
-        fundingGoal: number;
-        metadata: string;
-      }) => {
-        if (!account?.address) throw new Error('Wallet not connected');
-        
-        const tx = new Transaction();
-        tx.moveCall({
-          target: `${PACKAGE_ID}::${MODULE_NAME}::create_project`,
+  // Verify project
+  const verifyProject = useMutation({
+    mutationFn: async ({ 
+      projectId, 
+      verificationData
+    }: {
+      projectId: string;
+      verificationData: {
+        sensor_data: string;
+        satellite_data: string;
+        community_reports: string;
+        verification_score: number;
+      };
+    }) => {
+      if (!account?.address) throw new Error('Wallet not connected');
+      
+      const tx = {
+        kind: 'moveCall' as const,
+        data: {
+          target: `${PACKAGE_ID}::${CARBON_CREDIT_MODULE}::verify_project`,
           arguments: [
-            tx.object('0x...'), // Developer cap object ID
-            tx.pure.string(projectData.name),
-            tx.pure.string(projectData.location),
-            tx.pure.string(projectData.projectType),
-            tx.pure.string(projectData.description),
-            tx.pure.u64(projectData.totalCredits),
-            tx.pure.u64(projectData.pricePerCredit),
-            tx.pure.vector('string', projectData.coBenefits),
-            tx.pure.vector('u8', projectData.sdgGoals),
-            tx.pure.u64(projectData.fundingGoal),
-            tx.pure.string(projectData.metadata)
+            projectId,
+            verificationData.sensor_data,
+            verificationData.satellite_data,
+            verificationData.community_reports,
+            verificationData.verification_score
           ]
-        });
+        }
+      };
+      
+      return signAndExecute({ transactionBlock: tx });
+    }
+  });
 
-        const result = await signAndExecute({
-          transactionBlock: tx,
-        });
+  // Get all projects
+  const getProjects = useQuery({
+    queryKey: ['projects'],
+    queryFn: async () => {
+      // This would need to be implemented based on how you want to query the blockchain
+      // For now, returning mock data
+      return [] as CarbonProject[];
+    }
+  });
 
-        return result;
-      },
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ['projects'] });
-      }
-    });
-  };
-
-  // Mutation: Mint credits
-  const useMintCredits = () => {
-    return useMutation({
-      mutationFn: async (mintData: {
-        projectId: string;
-        co2Kg: number;
-        metadata: string;
-      }) => {
-        if (!account?.address) throw new Error('Wallet not connected');
-        
-        const tx = new Transaction();
-        tx.moveCall({
-          target: `${PACKAGE_ID}::${MODULE_NAME}::mint_credits`,
-          arguments: [
-            tx.object('0x...'), // Developer cap object ID
-            tx.object(mintData.projectId), // Project object
-            tx.pure.u64(mintData.co2Kg),
-            tx.pure.string(mintData.metadata)
-          ]
-        });
-
-        const result = await signAndExecute({
-          transactionBlock: tx,
-        });
-
-        return result;
-      },
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ['carbonCredits'] });
-        queryClient.invalidateQueries({ queryKey: ['projects'] });
-      }
-    });
-  };
-
-  // Mutation: Create listing
-  const useCreateListing = () => {
-    return useMutation({
-      mutationFn: async (listingData: {
-        creditId: string;
-        price: number;
-      }) => {
-        if (!account?.address) throw new Error('Wallet not connected');
-        
-        const tx = new Transaction();
-        tx.moveCall({
-          target: `${PACKAGE_ID}::${MODULE_NAME}::create_listing`,
-          arguments: [
-            tx.object(listingData.creditId), // Carbon credit object
-            tx.pure.u64(listingData.price)
-          ]
-        });
-
-        const result = await signAndExecute({
-          transactionBlock: tx,
-        });
-
-        return result;
-      },
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ['listings'] });
-        queryClient.invalidateQueries({ queryKey: ['carbonCredits'] });
-      }
-    });
-  };
-
-  // Mutation: Buy credits
-  const useBuyCredits = () => {
-    return useMutation({
-      mutationFn: async (buyData: {
-        listingId: string;
-        paymentAmount: number;
-      }) => {
-        if (!account?.address) throw new Error('Wallet not connected');
-        
-        const tx = new Transaction();
-        const [coin] = tx.splitCoins(tx.gas, [tx.pure.u64(buyData.paymentAmount)]);
-        
-        tx.moveCall({
-          target: `${PACKAGE_ID}::${MODULE_NAME}::buy_credits`,
-          arguments: [
-            tx.object(buyData.listingId), // Listing object
-            coin
-          ]
-        });
-
-        const result = await signAndExecute({
-          transactionBlock: tx,
-        });
-
-        return result;
-      },
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ['listings'] });
-        queryClient.invalidateQueries({ queryKey: ['carbonCredits'] });
-      }
-    });
-  };
-
-  // Mutation: Fund project
-  const useFundProject = () => {
-    return useMutation({
-      mutationFn: async (fundData: {
-        projectId: string;
-        fundingAmount: number;
-      }) => {
-        if (!account?.address) throw new Error('Wallet not connected');
-        
-        const tx = new Transaction();
-        const [coin] = tx.splitCoins(tx.gas, [tx.pure.u64(fundData.fundingAmount)]);
-        
-        tx.moveCall({
-          target: `${PACKAGE_ID}::${MODULE_NAME}::fund_project`,
-          arguments: [
-            tx.object(fundData.projectId), // Project object
-            coin
-          ]
-        });
-
-        const result = await signAndExecute({
-          transactionBlock: tx,
-        });
-
-        return result;
-      },
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ['projects'] });
-      }
-    });
-  };
-
-  // Mutation: Retire credit
-  const useRetireCredit = () => {
-    return useMutation({
-      mutationFn: async (retireData: {
-        creditId: string;
-        retirementReason: string;
-      }) => {
-        if (!account?.address) throw new Error('Wallet not connected');
-        
-        const tx = new Transaction();
-        tx.moveCall({
-          target: `${PACKAGE_ID}::${MODULE_NAME}::retire_credit`,
-          arguments: [
-            tx.object(retireData.creditId), // Carbon credit object
-            tx.pure.string(retireData.retirementReason)
-          ]
-        });
-
-        const result = await signAndExecute({
-          transactionBlock: tx,
-        });
-
-        return result;
-      },
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ['carbonCredits'] });
-      }
-    });
-  };
+  // Get all credit listings
+  const getCreditListings = useQuery({
+    queryKey: ['credit-listings'],
+    queryFn: async () => {
+      // This would need to be implemented based on how you want to query the blockchain
+      // For now, returning mock data
+      return [] as CarbonCredit[];
+    }
+  });
 
   return {
-    // Queries
-    useProjects,
-    useCarbonCredits,
-    useListings,
-    
-    // Mutations
-    useInitializeDeveloperCap,
-    useInitializeVerifierCap,
-    useCreateProject,
-    useMintCredits,
-    useCreateListing,
-    useBuyCredits,
-    useFundProject,
-    useRetireCredit,
-    
-    // Helper functions
+    initializeMarketplace,
+    createProject,
+    listCredits,
+    buyCredits,
+    retireCredits,
+    verifyProject,
+    getProjects,
+    getCreditListings,
+    packageId: PACKAGE_ID,
+    upgradeCapId: UPGRADE_CAP_ID,
     isConnected: !!account?.address,
     address: account?.address
   };
-}; 
+} 
