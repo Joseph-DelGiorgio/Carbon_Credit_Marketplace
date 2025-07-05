@@ -1,6 +1,5 @@
 import { useSuiClient, useCurrentAccount, useSignAndExecuteTransactionBlock } from '@mysten/dapp-kit';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { TransactionBlock } from '@mysten/sui/transactions';
 
 // Deployed contract addresses
 const PACKAGE_ID = '0x39cd874b2aa262082baaaab414c049b0dcfcef75f7770c20a576f0c976f66a34';
@@ -50,12 +49,9 @@ export const useSmartContracts = () => {
     mutationFn: async () => {
       if (!account?.address) throw new Error('Missing transaction sender');
       
-      const transactionBlock = {
-        kind: 'moveCall' as const,
-        data: {
-          target: `${PACKAGE_ID}::${CARBON_CREDIT_MODULE}::initialize_developer_cap`,
-          arguments: []
-        }
+      const transactionBlock: any = {
+        target: `${PACKAGE_ID}::${CARBON_CREDIT_MODULE}::initialize_developer_cap`,
+        arguments: []
       };
       
       return signAndExecute({ transactionBlock });
@@ -67,12 +63,9 @@ export const useSmartContracts = () => {
     mutationFn: async () => {
       if (!account?.address) throw new Error('Missing transaction sender');
       
-      const transactionBlock = {
-        kind: 'moveCall' as const,
-        data: {
-          target: `${PACKAGE_ID}::${CARBON_CREDIT_MODULE}::initialize_verifier_cap`,
-          arguments: []
-        }
+      const transactionBlock: any = {
+        target: `${PACKAGE_ID}::${CARBON_CREDIT_MODULE}::initialize_verifier_cap`,
+        arguments: []
       };
       
       return signAndExecute({ transactionBlock });
