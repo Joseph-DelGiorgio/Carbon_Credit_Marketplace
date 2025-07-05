@@ -87,13 +87,13 @@ const MarketplacePage: React.FC = () => {
   const account = useCurrentAccount();
   const { mutateAsync: signAndExecute } = useSignAndExecuteTransactionBlock();
   const {
-    initializeMarketplace,
+    initializeDeveloperCap,
     createProject,
-    listCredits,
+    createListing,
     buyCredits,
-    getProjects,
-    getCreditListings,
-    packageId
+    projects: contractProjects,
+    listings: contractListings,
+    PACKAGE_ID
   } = useSmartContracts();
 
   const [selectedProject, setSelectedProject] = useState<string | null>(null);
@@ -106,11 +106,11 @@ const MarketplacePage: React.FC = () => {
   useEffect(() => {
     if (account?.address && !isInitializing) {
       setIsInitializing(true);
-      initializeMarketplace.mutateAsync()
+      initializeDeveloperCap.mutateAsync()
         .then(() => {
           console.log('Marketplace initialized successfully');
         })
-        .catch((error) => {
+        .catch((error: any) => {
           console.error('Failed to initialize marketplace:', error);
         })
         .finally(() => {
@@ -341,7 +341,7 @@ const MarketplacePage: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
             <div>
               <span className="text-gray-500">Package ID:</span>
-              <div className="font-mono text-gray-900 break-all">{packageId}</div>
+                              <div className="font-mono text-gray-900 break-all">{PACKAGE_ID}</div>
             </div>
             <div>
               <span className="text-gray-500">Network:</span>
