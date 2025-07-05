@@ -1,5 +1,6 @@
 import { useSuiClient, useCurrentAccount, useSignAndExecuteTransactionBlock } from '@mysten/dapp-kit';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Transaction } from '@mysten/sui/transactions';
 
 // Deployed contract addresses
 const PACKAGE_ID = '0x39cd874b2aa262082baaaab414c049b0dcfcef75f7770c20a576f0c976f66a34';
@@ -47,28 +48,26 @@ export const useSmartContracts = () => {
   // Initialize developer capability
   const initializeDeveloperCap = useMutation({
     mutationFn: async () => {
-      if (!account?.address) throw new Error('Missing transaction sender');
-      
-      const transactionBlock: any = {
+      if (!account?.address) throw new Error('Wallet not connected');
+      const tx = new Transaction();
+      tx.moveCall({
         target: `${PACKAGE_ID}::${CARBON_CREDIT_MODULE}::initialize_developer_cap`,
         arguments: []
-      };
-      
-      return signAndExecute({ transactionBlock });
+      });
+      return signAndExecute({ transactionBlock: tx });
     }
   });
 
   // Initialize verifier capability
   const initializeVerifierCap = useMutation({
     mutationFn: async () => {
-      if (!account?.address) throw new Error('Missing transaction sender');
-      
-      const transactionBlock: any = {
+      if (!account?.address) throw new Error('Wallet not connected');
+      const tx = new Transaction();
+      tx.moveCall({
         target: `${PACKAGE_ID}::${CARBON_CREDIT_MODULE}::initialize_verifier_cap`,
         arguments: []
-      };
-      
-      return signAndExecute({ transactionBlock });
+      });
+      return signAndExecute({ transactionBlock: tx });
     }
   });
 
@@ -98,24 +97,22 @@ export const useSmartContracts = () => {
       metadata: string;
     }) => {
       if (!account?.address) throw new Error('Wallet not connected');
-      
-      const tx = new TransactionBlock();
+      const tx = new Transaction();
       tx.moveCall({
         target: `${PACKAGE_ID}::${CARBON_CREDIT_MODULE}::create_project`,
         arguments: [
-          tx.pure(name),
-          tx.pure(location),
-          tx.pure(projectType),
-          tx.pure(description),
-          tx.pure(totalCredits),
-          tx.pure(pricePerCredit),
-          tx.pure(coBenefits),
-          tx.pure(sdgGoals),
-          tx.pure(fundingGoal),
-          tx.pure(metadata)
+          tx.pure('string', name),
+          tx.pure('string', location),
+          tx.pure('string', projectType),
+          tx.pure('string', description),
+          tx.pure('u64', totalCredits),
+          tx.pure('u64', Math.floor(pricePerCredit * 1000000000)), // Convert SUI to MIST (9 decimal places)
+          tx.pure('vector<string>', coBenefits),
+          tx.pure('vector<u8>', sdgGoals),
+          tx.pure('u64', Math.floor(fundingGoal * 1000000000)), // Convert SUI to MIST
+          tx.pure('string', metadata)
         ]
       });
-      
       return signAndExecute({ transactionBlock: tx });
     }
   });
@@ -132,8 +129,7 @@ export const useSmartContracts = () => {
       metadata: string;
     }) => {
       if (!account?.address) throw new Error('Wallet not connected');
-      
-      const tx = new TransactionBlock();
+      const tx = new Transaction();
       tx.moveCall({
         target: `${PACKAGE_ID}::${CARBON_CREDIT_MODULE}::mint_credits`,
         arguments: [
@@ -142,7 +138,6 @@ export const useSmartContracts = () => {
           tx.pure(metadata)
         ]
       });
-      
       return signAndExecute({ transactionBlock: tx });
     }
   });
@@ -159,8 +154,7 @@ export const useSmartContracts = () => {
       quantity: number;
     }) => {
       if (!account?.address) throw new Error('Wallet not connected');
-      
-      const tx = new TransactionBlock();
+      const tx = new Transaction();
       tx.moveCall({
         target: `${PACKAGE_ID}::${CARBON_CREDIT_MODULE}::create_listing`,
         arguments: [
@@ -169,7 +163,6 @@ export const useSmartContracts = () => {
           tx.pure(quantity)
         ]
       });
-      
       return signAndExecute({ transactionBlock: tx });
     }
   });
@@ -184,8 +177,7 @@ export const useSmartContracts = () => {
       payment: number;
     }) => {
       if (!account?.address) throw new Error('Wallet not connected');
-      
-      const tx = new TransactionBlock();
+      const tx = new Transaction();
       tx.moveCall({
         target: `${PACKAGE_ID}::${CARBON_CREDIT_MODULE}::buy_credits`,
         arguments: [
@@ -193,7 +185,6 @@ export const useSmartContracts = () => {
           tx.pure(payment)
         ]
       });
-      
       return signAndExecute({ transactionBlock: tx });
     }
   });
@@ -208,8 +199,7 @@ export const useSmartContracts = () => {
       reason: string;
     }) => {
       if (!account?.address) throw new Error('Wallet not connected');
-      
-      const tx = new TransactionBlock();
+      const tx = new Transaction();
       tx.moveCall({
         target: `${PACKAGE_ID}::${CARBON_CREDIT_MODULE}::retire_credit`,
         arguments: [
@@ -217,7 +207,6 @@ export const useSmartContracts = () => {
           tx.pure(reason)
         ]
       });
-      
       return signAndExecute({ transactionBlock: tx });
     }
   });
@@ -232,8 +221,7 @@ export const useSmartContracts = () => {
       amount: number;
     }) => {
       if (!account?.address) throw new Error('Wallet not connected');
-      
-      const tx = new TransactionBlock();
+      const tx = new Transaction();
       tx.moveCall({
         target: `${PACKAGE_ID}::${CARBON_CREDIT_MODULE}::fund_project`,
         arguments: [
@@ -241,12 +229,11 @@ export const useSmartContracts = () => {
           tx.pure(amount)
         ]
       });
-      
       return signAndExecute({ transactionBlock: tx });
     }
   });
 
-  // Query functions
+  // Query functions (mocked)
   const { data: projects, isLoading: projectsLoading } = useQuery({
     queryKey: ['projects'],
     queryFn: async (): Promise<CarbonProject[]> => {
