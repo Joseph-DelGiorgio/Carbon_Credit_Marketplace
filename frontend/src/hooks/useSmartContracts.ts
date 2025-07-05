@@ -91,7 +91,7 @@ export function useSmartContracts() {
       const tx = new Transaction();
       tx.moveCall({
         target: `${PACKAGE_ID}::${CARBON_CREDIT_MODULE}::initialize_marketplace`,
-        arguments: [UPGRADE_CAP_ID]
+        arguments: [tx.object(UPGRADE_CAP_ID)]
       });
       
       return signAndExecute({ transactionBlock: tx });
@@ -117,13 +117,12 @@ export function useSmartContracts() {
     }) => {
       if (!account?.address) throw new Error('Wallet not connected');
       
-      const tx = new Transaction();
-      tx.moveCall({
-        target: `${PACKAGE_ID}::${CARBON_CREDIT_MODULE}::create_project`,
-        arguments: [name, description, location, projectType, totalCredits, pricePerCredit]
+      return signAndExecute({
+        transactionBlock: {
+          target: `${PACKAGE_ID}::${CARBON_CREDIT_MODULE}::create_project`,
+          arguments: [name, description, location, projectType, totalCredits, pricePerCredit]
+        }
       });
-      
-      return signAndExecute({ transactionBlock: tx });
     }
   });
 
