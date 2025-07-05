@@ -4,6 +4,7 @@ import StatsBar from '../components/StatsBar';
 import ProjectCard from '../components/ProjectCard';
 import WalletStatus from '../components/WalletStatus';
 import CreateProjectButton from '../components/CreateProjectButton';
+import CapabilityInitializer from '../components/CapabilityInitializer';
 
 const mockProjects = [
   { id: 1, name: 'Rainforest Restoration', description: 'Reforesting 100 acres in Brazil', credits: 1000, price: 12.5 },
@@ -18,7 +19,10 @@ const MarketplacePage = () => (
       <div className="flex-1">
         <div className="flex justify-between items-center mb-4">
           <StatsBar />
-          <CreateProjectButton />
+          <div className="flex gap-3">
+            <CapabilityInitializer />
+            <CreateProjectButton />
+          </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
           {mockProjects.map((project) => (
