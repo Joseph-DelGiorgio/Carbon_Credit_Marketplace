@@ -1,6 +1,6 @@
 import { useSuiClient, useCurrentAccount, useSignAndExecuteTransactionBlock } from '@mysten/dapp-kit';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Transaction } from '@mysten/sui/transactions';
+import { TransactionBlock } from '@mysten/sui/transactions';
 
 // Deployed contract addresses
 const PACKAGE_ID = '0x39cd874b2aa262082baaaab414c049b0dcfcef75f7770c20a576f0c976f66a34';
@@ -87,13 +87,11 @@ export function useSmartContracts() {
   const initializeMarketplace = useMutation({
     mutationFn: async () => {
       if (!account?.address) throw new Error('Wallet not connected');
-      
-      const tx = new Transaction();
+      const tx = new TransactionBlock();
       tx.moveCall({
         target: `${PACKAGE_ID}::${CARBON_CREDIT_MODULE}::initialize_marketplace`,
         arguments: [tx.object(UPGRADE_CAP_ID)]
       });
-      
       return signAndExecute({ transactionBlock: tx });
     }
   });
@@ -116,13 +114,19 @@ export function useSmartContracts() {
       pricePerCredit: number;
     }) => {
       if (!account?.address) throw new Error('Wallet not connected');
-      
-      return signAndExecute({
-        transactionBlock: {
-          target: `${PACKAGE_ID}::${CARBON_CREDIT_MODULE}::create_project`,
-          arguments: [name, description, location, projectType, totalCredits, pricePerCredit]
-        }
+      const tx = new TransactionBlock();
+      tx.moveCall({
+        target: `${PACKAGE_ID}::${CARBON_CREDIT_MODULE}::create_project`,
+        arguments: [
+          tx.pure(name),
+          tx.pure(description),
+          tx.pure(location),
+          tx.pure(projectType),
+          tx.pure(totalCredits),
+          tx.pure(pricePerCredit)
+        ]
       });
+      return signAndExecute({ transactionBlock: tx });
     }
   });
 
@@ -138,13 +142,15 @@ export function useSmartContracts() {
       price: number;
     }) => {
       if (!account?.address) throw new Error('Wallet not connected');
-      
-      const tx = new Transaction();
+      const tx = new TransactionBlock();
       tx.moveCall({
         target: `${PACKAGE_ID}::${CARBON_CREDIT_MODULE}::list_credits`,
-        arguments: [projectId, amount, price]
+        arguments: [
+          tx.pure(projectId),
+          tx.pure(amount),
+          tx.pure(price)
+        ]
       });
-      
       return signAndExecute({ transactionBlock: tx });
     }
   });
@@ -159,13 +165,14 @@ export function useSmartContracts() {
       amount: number;
     }) => {
       if (!account?.address) throw new Error('Wallet not connected');
-      
-      const tx = new Transaction();
+      const tx = new TransactionBlock();
       tx.moveCall({
         target: `${PACKAGE_ID}::${CARBON_CREDIT_MODULE}::buy_credits`,
-        arguments: [listingId, amount]
+        arguments: [
+          tx.pure(listingId),
+          tx.pure(amount)
+        ]
       });
-      
       return signAndExecute({ transactionBlock: tx });
     }
   });
@@ -180,13 +187,14 @@ export function useSmartContracts() {
       reason: string;
     }) => {
       if (!account?.address) throw new Error('Wallet not connected');
-      
-      const tx = new Transaction();
+      const tx = new TransactionBlock();
       tx.moveCall({
         target: `${PACKAGE_ID}::${CARBON_CREDIT_MODULE}::retire_credits`,
-        arguments: [creditId, reason]
+        arguments: [
+          tx.pure(creditId),
+          tx.pure(reason)
+        ]
       });
-      
       return signAndExecute({ transactionBlock: tx });
     }
   });
@@ -198,27 +206,17 @@ export function useSmartContracts() {
       verificationData
     }: {
       projectId: string;
-      verificationData: {
-        sensor_data: string;
-        satellite_data: string;
-        community_reports: string;
-        verification_score: number;
-      };
+      verificationData: string;
     }) => {
       if (!account?.address) throw new Error('Wallet not connected');
-      
-      const tx = new Transaction();
+      const tx = new TransactionBlock();
       tx.moveCall({
         target: `${PACKAGE_ID}::${CARBON_CREDIT_MODULE}::verify_project`,
         arguments: [
-          projectId,
-          verificationData.sensor_data,
-          verificationData.satellite_data,
-          verificationData.community_reports,
-          verificationData.verification_score
+          tx.pure(projectId),
+          tx.pure(verificationData)
         ]
       });
-      
       return signAndExecute({ transactionBlock: tx });
     }
   });
