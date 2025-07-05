@@ -1,33 +1,35 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { SuiClientProvider, WalletProvider } from '@mysten/dapp-kit';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { getFullnodeUrl } from '@mysten/sui/client';
 import Navbar from './components/Navbar';
 import MarketplacePage from './pages/MarketplacePage';
+import './styles/index.css';
 
+// Initialize query client
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <SuiClientProvider networks={{
-      mainnet: { url: getFullnodeUrl('mainnet') },
-      testnet: { url: getFullnodeUrl('testnet') },
-      devnet: { url: getFullnodeUrl('devnet') },
-      localnet: { url: getFullnodeUrl('localnet') },
-    }} defaultNetwork="testnet">
-      <WalletProvider>
-        <Router>
-          <div className="min-h-screen bg-background text-foreground">
+// Sui network configuration
+const networks = {
+  testnet: { url: getFullnodeUrl('testnet') },
+  mainnet: { url: getFullnodeUrl('mainnet') },
+};
+
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <SuiClientProvider networks={networks} defaultNetwork="testnet">
+        <WalletProvider>
+          <div className="min-h-screen bg-gray-50">
             <Navbar />
-            <Routes>
-              <Route path="/" element={<MarketplacePage />} />
-            </Routes>
+            <main>
+              <MarketplacePage />
+            </main>
           </div>
-        </Router>
-      </WalletProvider>
-    </SuiClientProvider>
-  </QueryClientProvider>
-);
+        </WalletProvider>
+      </SuiClientProvider>
+    </QueryClientProvider>
+  );
+}
 
 export default App;
