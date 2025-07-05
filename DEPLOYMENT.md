@@ -5,17 +5,17 @@
 ### ✅ Successfully Deployed to Sui Testnet
 
 **Transaction Details:**
-- **Transaction Digest**: `584u7gR5tR8WYVR9QCV8XzkN84E7Vb2i6Y5kaKSip3gU`
+- **Transaction Digest**: `4n58VaXpz1xwwAa7MWMoWHoyYUui4G91RxMpnojhM7Us`
 - **Deployer Address**: `0xde5043879bb960b742bd9963bbbb72cf7c46e0c24c54f5859ae2008eced4b997`
 - **Gas Used**: ~31.8 SUI
 - **Status**: Success ✅
 
 ### Contract Addresses
 
-**Package ID**: `0x39cd874b2aa262082baaaab414c049b0dcfcef75f7770c20a576f0c976f66a34`
+**Package ID**: `0x56ed4d2202dfa0af48f7fd226f7212a043dad81cde369eb208cff339d5689d9e`
 - This is the main contract package containing all the carbon credit marketplace functionality
 
-**Upgrade Cap ID**: `0x5bc2be0185e8274511f8229bb5d05d3eab8aa3b13e6069e8fb1c8235d4cb8133`
+**Upgrade Cap ID**: `0x01f74f60208491d9a88b80fce878f959048fbc01033a1fe0124a41332d05606a`
 - This object allows the deployer to upgrade the contract in the future
 
 ### Module Information
@@ -51,7 +51,7 @@ The deployed contract includes the following functions:
 
 - **Network**: Sui Testnet
 - **RPC URL**: `https://fullnode.testnet.sui.io:443`
-- **Explorer**: https://suiexplorer.com/txblock/584u7gR5tR8WYVR9QCV8XzkN84E7Vb2i6Y5kaKSip3gU?network=testnet
+- **Explorer**: https://suiexplorer.com/txblock/4n58VaXpz1xwwAa7MWMoWHoyYUui4G91RxMpnojhM7Us?network=testnet
 
 ### Security Notes
 
@@ -61,5 +61,5 @@ The deployed contract includes the following functions:
 
 ---
 
-**Deployment Date**: July 1, 2025  
+**Deployment Date**: July 1, 2025 (Updated)  
 **Deployer**: `0xde5043879bb960b742bd9963bbbb72cf7c46e0c24c54f5859ae2008eced4b997` 
