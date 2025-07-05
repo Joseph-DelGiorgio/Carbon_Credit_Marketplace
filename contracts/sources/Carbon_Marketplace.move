@@ -132,7 +132,6 @@ module carbon_marketplace::carbon_credit {
 
     // Create a new micro-project
     public entry fun create_project(
-        _cap: &ProjectDeveloperCap,
         name: string::String,
         location: string::String,
         project_type: string::String,
