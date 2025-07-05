@@ -1,5 +1,5 @@
 import React from 'react';
-import { ConnectButton } from '@mysten/dapp-kit';
+import ConnectWallet from './ConnectWallet';
 import WalletStatus from './WalletStatus';
 
 const Navbar: React.FC = () => {
@@ -38,10 +38,7 @@ const Navbar: React.FC = () => {
           {/* Wallet Connection */}
           <div className="flex items-center space-x-4">
             <WalletStatus />
-            <ConnectButton 
-              connectText="Connect Wallet"
-              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
-            />
+            <ConnectWallet />
           </div>
         </div>
       </div>
