@@ -1,6 +1,5 @@
-import { useSuiClient, useCurrentAccount, useSignAndExecuteTransactionBlock } from '@mysten/dapp-kit';
+import { useSuiClient, useCurrentAccount, useSignAndExecuteTransaction } from '@mysten/dapp-kit';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Transaction } from '@mysten/sui/transactions';
 
 // Deployed contract addresses
 const PACKAGE_ID = '0x56ed4d2202dfa0af48f7fd226f7212a043dad81cde369eb208cff339d5689d9e';
@@ -43,18 +42,18 @@ export interface MarketplaceStats {
 export const useSmartContracts = () => {
   const client = useSuiClient();
   const account = useCurrentAccount();
-  const { mutateAsync: signAndExecute } = useSignAndExecuteTransactionBlock();
+  const { mutateAsync: signAndExecute } = useSignAndExecuteTransaction();
 
   // Initialize developer capability
   const initializeDeveloperCap = useMutation({
     mutationFn: async () => {
       if (!account?.address) throw new Error('Wallet not connected');
-      const tx = new Transaction();
-      tx.moveCall({
+      const tx = {
+        kind: 'moveCall' as const,
         target: `${PACKAGE_ID}::${CARBON_CREDIT_MODULE}::initialize_developer_cap`,
         arguments: []
-      });
-      return signAndExecute({ transactionBlock: tx });
+      };
+      return signAndExecute({ transaction: tx });
     }
   });
 
@@ -62,12 +61,12 @@ export const useSmartContracts = () => {
   const initializeVerifierCap = useMutation({
     mutationFn: async () => {
       if (!account?.address) throw new Error('Wallet not connected');
-      const tx = new Transaction();
-      tx.moveCall({
+      const tx = {
+        kind: 'moveCall' as const,
         target: `${PACKAGE_ID}::${CARBON_CREDIT_MODULE}::initialize_verifier_cap`,
         arguments: []
-      });
-      return signAndExecute({ transactionBlock: tx });
+      };
+      return signAndExecute({ transaction: tx });
     }
   });
 
