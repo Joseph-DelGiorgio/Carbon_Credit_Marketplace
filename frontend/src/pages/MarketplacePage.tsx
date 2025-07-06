@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useSmartContracts } from '../hooks/useSmartContracts';
 import { useProjects } from '../hooks/useProjects';
+import type { ProjectFilters } from '../hooks/useProjects';
 import { useCurrentAccount, useSignAndExecuteTransaction } from '@mysten/dapp-kit';
 import CreateProjectButton from '../components/CreateProjectButton';
 import CapabilityInitializer from '../components/CapabilityInitializer';
 import BuyCreditsModal from '../components/BuyCreditsModal';
+import MintCreditsModal from '../components/MintCreditsModal';
 import type { CarbonProject } from '../hooks/useProjects';
 
 interface MockCredit {
@@ -111,20 +113,24 @@ const MarketplacePage: React.FC = () => {
 
   const [selectedProject, setSelectedProject] = useState<string | null>(null);
   const [selectedCredit, setSelectedCredit] = useState<MockCredit | null>(null);
+  const [selectedProjectForMinting, setSelectedProjectForMinting] = useState<CarbonProject | null>(null);
   const [isInitializing, setIsInitializing] = useState(false);
   const [projects, setProjects] = useState(mockProjects);
   const [credits, setCredits] = useState(mockCredits);
   const [viewMode, setViewMode] = useState<'all' | 'my'>('all');
+  const [filters, setFilters] = useState<ProjectFilters>({});
 
-  // Use the new projects hook
+  // Use the new projects hook with filters
   const {
     allProjects,
     userProjects,
     allListings,
+    carbonCredits,
     isLoadingProjects,
     isLoadingUserProjects,
     isLoadingListings,
-  } = useProjects();
+    isLoadingCredits,
+  } = useProjects(filters);
 
   // Use real data when available, fallback to mock data
   const displayProjects = viewMode === 'my' 
@@ -150,6 +156,18 @@ const MarketplacePage: React.FC = () => {
 
   const handleBuyCredits = (credit: MockCredit) => {
     setSelectedCredit(credit);
+  };
+
+  const handleMintCredits = (project: CarbonProject) => {
+    setSelectedProjectForMinting(project);
+  };
+
+  const handleFiltersChange = (newFilters: ProjectFilters) => {
+    setFilters(newFilters);
+  };
+
+  const handleClearFilters = () => {
+    setFilters({});
   };
 
   const getProjectTypeColor = (type: string) => {
@@ -273,9 +291,7 @@ const MarketplacePage: React.FC = () => {
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold text-gray-900">Carbon Credit Projects</h2>
             <div className="flex space-x-2">
-              <button className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
-                Filter
-              </button>
+              {/* Filter component will be added here */}
               <button className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
                 Sort
               </button>
@@ -331,6 +347,17 @@ const MarketplacePage: React.FC = () => {
                     >
                       View Details
                     </button>
+                    {viewMode === 'my' && project.developer === account?.address && (
+                      <button 
+                        onClick={() => handleMintCredits(project)}
+                        className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors"
+                        title="Mint Credits"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                        </svg>
+                      </button>
+                    )}
                     <button className="px-4 py-2 border border-gray-300 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-50 transition-colors">
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
@@ -495,6 +522,15 @@ const MarketplacePage: React.FC = () => {
            onClose={() => setSelectedCredit(null)}
            credit={selectedCredit}
            project={projects.find(p => p.id === selectedCredit.project_id)!}
+         />
+       )}
+
+       {/* Mint Credits Modal */}
+       {selectedProjectForMinting && (
+         <MintCreditsModal
+           isOpen={!!selectedProjectForMinting}
+           onClose={() => setSelectedProjectForMinting(null)}
+           project={selectedProjectForMinting}
          />
        )}
      </div>
