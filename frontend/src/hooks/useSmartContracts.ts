@@ -53,7 +53,7 @@ export const useSmartContracts = () => {
         target: `${PACKAGE_ID}::${CARBON_CREDIT_MODULE}::initialize_developer_cap`,
         arguments: []
       };
-      return signAndExecute({ transaction: tx });
+      return signAndExecute({ transaction: tx as any });
     }
   });
 
@@ -66,7 +66,7 @@ export const useSmartContracts = () => {
         target: `${PACKAGE_ID}::${CARBON_CREDIT_MODULE}::initialize_verifier_cap`,
         arguments: []
       };
-      return signAndExecute({ transaction: tx });
+      return signAndExecute({ transaction: tx as any });
     }
   });
 
