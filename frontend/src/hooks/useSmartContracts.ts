@@ -102,21 +102,21 @@ export const useSmartContracts = () => {
     }) => {
       if (!account?.address) throw new Error('Wallet not connected');
       const tx = new Transaction();
-      tx.moveCall({
+      (tx as any).moveCall({
         package: PACKAGE_ID,
         module: CARBON_CREDIT_MODULE,
         function: 'create_project',
         arguments: [
-          tx.pure('string', name),
-          tx.pure('string', location),
-          tx.pure('string', projectType),
-          tx.pure('string', description),
-          tx.pure('u64', totalCredits),
-          tx.pure('u64', Math.floor(pricePerCredit * 1000000000)), // Convert SUI to MIST (9 decimal places)
-          tx.pure('vector<string>', coBenefits),
-          tx.pure('vector<u8>', sdgGoals),
-          tx.pure('u64', Math.floor(fundingGoal * 1000000000)), // Convert SUI to MIST
-          tx.pure('string', metadata)
+          (tx as any).pure('string', name),
+          (tx as any).pure('string', location),
+          (tx as any).pure('string', projectType),
+          (tx as any).pure('string', description),
+          (tx as any).pure('u64', totalCredits),
+          (tx as any).pure('u64', Math.floor(pricePerCredit * 1000000000)), // Convert SUI to MIST (9 decimal places)
+          (tx as any).pure('vector<string>', coBenefits),
+          (tx as any).pure('vector<u8>', sdgGoals),
+          (tx as any).pure('u64', Math.floor(fundingGoal * 1000000000)), // Convert SUI to MIST
+          (tx as any).pure('string', metadata)
         ]
       });
       return signAndExecute({ transaction: tx });
