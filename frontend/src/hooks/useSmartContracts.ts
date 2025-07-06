@@ -49,12 +49,12 @@ export const useSmartContracts = () => {
   const initializeDeveloperCap = useMutation({
     mutationFn: async () => {
       if (!account?.address) throw new Error('Wallet not connected');
-      const tx = {
-        kind: 'moveCall' as const,
+      const tx = new Transaction();
+      tx.moveCall({
         target: `${PACKAGE_ID}::${CARBON_CREDIT_MODULE}::initialize_developer_cap`,
         arguments: []
-      };
-      return signAndExecute({ transaction: tx as any });
+      });
+      return signAndExecute({ transaction: tx });
     }
   });
 
@@ -62,12 +62,12 @@ export const useSmartContracts = () => {
   const initializeVerifierCap = useMutation({
     mutationFn: async () => {
       if (!account?.address) throw new Error('Wallet not connected');
-      const tx = {
-        kind: 'moveCall' as const,
+      const tx = new Transaction();
+      tx.moveCall({
         target: `${PACKAGE_ID}::${CARBON_CREDIT_MODULE}::initialize_verifier_cap`,
         arguments: []
-      };
-      return signAndExecute({ transaction: tx as any });
+      });
+      return signAndExecute({ transaction: tx });
     }
   });
 
@@ -101,16 +101,16 @@ export const useSmartContracts = () => {
       tx.moveCall({
         target: `${PACKAGE_ID}::${CARBON_CREDIT_MODULE}::create_project`,
         arguments: [
-          tx.pure('string', name),
-          tx.pure('string', location),
-          tx.pure('string', projectType),
-          tx.pure('string', description),
-          tx.pure('u64', totalCredits),
-          tx.pure('u64', Math.floor(pricePerCredit * 1000000000)), // Convert SUI to MIST (9 decimal places)
-          tx.pure('vector<string>', coBenefits),
-          tx.pure('vector<u8>', sdgGoals),
-          tx.pure('u64', Math.floor(fundingGoal * 1000000000)), // Convert SUI to MIST
-          tx.pure('string', metadata)
+          tx.pure(name, 'string'),
+          tx.pure(location, 'string'),
+          tx.pure(projectType, 'string'),
+          tx.pure(description, 'string'),
+          tx.pure(totalCredits, 'u64'),
+          tx.pure(Math.floor(pricePerCredit * 1000000000), 'u64'), // Convert SUI to MIST (9 decimal places)
+          tx.pure(coBenefits, 'vector<string>'),
+          tx.pure(sdgGoals, 'vector<u8>'),
+          tx.pure(Math.floor(fundingGoal * 1000000000), 'u64'), // Convert SUI to MIST
+          tx.pure(metadata, 'string')
         ]
       });
       return signAndExecute({ transaction: tx });
