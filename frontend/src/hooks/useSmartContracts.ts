@@ -1,5 +1,6 @@
 import { useSuiClient, useCurrentAccount, useSignAndExecuteTransaction } from '@mysten/dapp-kit';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Transaction } from '@mysten/sui/transactions';
 
 // Deployed contract addresses
 const PACKAGE_ID = '0x56ed4d2202dfa0af48f7fd226f7212a043dad81cde369eb208cff339d5689d9e';
@@ -96,25 +97,23 @@ export const useSmartContracts = () => {
       metadata: string;
     }) => {
       if (!account?.address) throw new Error('Wallet not connected');
-      return signAndExecute({
-        transactionBlock: {
-          moveCall: {
-            target: `${PACKAGE_ID}::${CARBON_CREDIT_MODULE}::create_project`,
-            arguments: [
-              { type: 'string', value: name },
-              { type: 'string', value: location },
-              { type: 'string', value: projectType },
-              { type: 'string', value: description },
-              { type: 'u64', value: totalCredits },
-              { type: 'u64', value: Math.floor(pricePerCredit * 1000000000) }, // Convert SUI to MIST (9 decimal places)
-              { type: 'vector<string>', value: coBenefits },
-              { type: 'vector<u8>', value: sdgGoals },
-              { type: 'u64', value: Math.floor(fundingGoal * 1000000000) }, // Convert SUI to MIST
-              { type: 'string', value: metadata }
-            ]
-          }
-        }
-      } as any);
+      const tx = new Transaction();
+      tx.moveCall({
+        target: `${PACKAGE_ID}::${CARBON_CREDIT_MODULE}::create_project`,
+        arguments: [
+          tx.pure(name, 'string'),
+          tx.pure(location, 'string'),
+          tx.pure(projectType, 'string'),
+          tx.pure(description, 'string'),
+          tx.pure(totalCredits, 'u64'),
+          tx.pure(Math.floor(pricePerCredit * 1000000000), 'u64'), // Convert SUI to MIST (9 decimal places)
+          tx.pure(coBenefits, 'vector<string>'),
+          tx.pure(sdgGoals, 'vector<u8>'),
+          tx.pure(Math.floor(fundingGoal * 1000000000), 'u64'), // Convert SUI to MIST
+          tx.pure(metadata, 'string')
+        ]
+      });
+      return signAndExecute({ transaction: tx });
     }
   });
 
