@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useSmartContracts } from '../hooks/useSmartContracts';
-import { useCurrentAccount, useSignAndExecuteTransactionBlock } from '@mysten/dapp-kit';
+import { useProjects } from '../hooks/useProjects';
+import { useCurrentAccount, useSignAndExecuteTransaction } from '@mysten/dapp-kit';
 import CreateProjectButton from '../components/CreateProjectButton';
 import CapabilityInitializer from '../components/CapabilityInitializer';
 import BuyCreditsModal from '../components/BuyCreditsModal';
-import type { CarbonProject } from '../hooks/useSmartContracts';
+import type { CarbonProject } from '../hooks/useProjects';
 
 interface MockCredit {
   id: string;
@@ -17,7 +18,7 @@ interface MockCredit {
 }
 
 // Mock data for demonstration - in production this would come from blockchain queries
-const mockProjects = [
+const mockProjects: CarbonProject[] = [
   {
     id: '1',
     name: 'Amazon Rainforest Conservation',
@@ -28,9 +29,13 @@ const mockProjects = [
     available_credits: 25000,
     price_per_credit: 25.50,
     developer: '0x1234...5678',
-    verification_status: 'verified',
+    verified: true,
     created_at: Date.now() - 86400000 * 30,
-    image: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&h=300&fit=crop'
+    co_benefits: ['Biodiversity protection', 'Community development'],
+    sdg_goals: [13, 15],
+    funding_goal: 1000000,
+    funding_raised: 750000,
+    metadata: '{"image": "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&h=300&fit=crop"}'
   },
   {
     id: '2',
@@ -42,9 +47,13 @@ const mockProjects = [
     available_credits: 40000,
     price_per_credit: 18.75,
     developer: '0x8765...4321',
-    verification_status: 'pending',
+    verified: false,
     created_at: Date.now() - 86400000 * 15,
-    image: 'https://images.unsplash.com/photo-1509391366360-2e959784a276?w=400&h=300&fit=crop'
+    co_benefits: ['Energy access', 'Job creation'],
+    sdg_goals: [7, 8],
+    funding_goal: 2000000,
+    funding_raised: 1200000,
+    metadata: '{"image": "https://images.unsplash.com/photo-1509391366360-2e959784a276?w=400&h=300&fit=crop"}'
   },
   {
     id: '3',
@@ -56,9 +65,13 @@ const mockProjects = [
     available_credits: 15000,
     price_per_credit: 32.00,
     developer: '0xabcd...efgh',
-    verification_status: 'verified',
+    verified: true,
     created_at: Date.now() - 86400000 * 7,
-    image: 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=400&h=300&fit=crop'
+    co_benefits: ['Marine life protection', 'Water quality improvement'],
+    sdg_goals: [14, 6],
+    funding_goal: 800000,
+    funding_raised: 600000,
+    metadata: '{"image": "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=400&h=300&fit=crop"}'
   }
 ];
 
@@ -85,7 +98,7 @@ const mockCredits = [
 
 const MarketplacePage: React.FC = () => {
   const account = useCurrentAccount();
-  const { mutateAsync: signAndExecute } = useSignAndExecuteTransactionBlock();
+  const { mutateAsync: signAndExecute } = useSignAndExecuteTransaction();
   const {
     initializeDeveloperCap,
     createProject,
@@ -101,6 +114,22 @@ const MarketplacePage: React.FC = () => {
   const [isInitializing, setIsInitializing] = useState(false);
   const [projects, setProjects] = useState(mockProjects);
   const [credits, setCredits] = useState(mockCredits);
+  const [viewMode, setViewMode] = useState<'all' | 'my'>('all');
+
+  // Use the new projects hook
+  const {
+    allProjects,
+    userProjects,
+    allListings,
+    isLoadingProjects,
+    isLoadingUserProjects,
+    isLoadingListings,
+  } = useProjects();
+
+  // Use real data when available, fallback to mock data
+  const displayProjects = viewMode === 'my' 
+    ? (userProjects.length > 0 ? userProjects : mockProjects.filter(p => p.developer === account?.address))
+    : (allProjects.length > 0 ? allProjects : mockProjects);
 
   // Initialize marketplace on first load
   useEffect(() => {
@@ -134,8 +163,8 @@ const MarketplacePage: React.FC = () => {
     return colors[type as keyof typeof colors] || 'bg-gray-100 text-gray-800';
   };
 
-  const getVerificationBadge = (status: string) => {
-    if (status === 'verified') {
+  const getVerificationBadge = (verified: boolean) => {
+    if (verified) {
       return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
         <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
           <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
@@ -149,6 +178,15 @@ const MarketplacePage: React.FC = () => {
       </svg>
       Pending
     </span>;
+  };
+
+  const getProjectImage = (project: CarbonProject) => {
+    try {
+      const metadata = JSON.parse(project.metadata);
+      return metadata.image || 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&h=300&fit=crop';
+    } catch {
+      return 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&h=300&fit=crop';
+    }
   };
 
   return (
@@ -174,12 +212,12 @@ const MarketplacePage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="text-center">
-              <div className="text-2xl font-bold text-green-600">{projects.length}</div>
+              <div className="text-2xl font-bold text-green-600">{displayProjects.length}</div>
               <div className="text-sm text-gray-600">Active Projects</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-blue-600">
-                {projects.reduce((sum, p) => sum + p.total_credits, 0).toLocaleString()}
+                {displayProjects.reduce((sum, p) => sum + p.total_credits, 0).toLocaleString()}
               </div>
               <div className="text-sm text-gray-600">Total Credits</div>
             </div>
@@ -191,9 +229,39 @@ const MarketplacePage: React.FC = () => {
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-orange-600">
-                {projects.filter(p => p.verification_status === 'verified').length}
+                {displayProjects.filter(p => p.verified).length}
               </div>
               <div className="text-sm text-gray-600">Verified Projects</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* View Toggle */}
+      <div className="bg-white border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex justify-center">
+            <div className="bg-gray-100 rounded-lg p-1">
+              <button
+                onClick={() => setViewMode('all')}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                  viewMode === 'all'
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                All Projects
+              </button>
+              <button
+                onClick={() => setViewMode('my')}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                  viewMode === 'my'
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                My Projects
+              </button>
             </div>
           </div>
         </div>
@@ -215,16 +283,16 @@ const MarketplacePage: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {projects.map((project) => (
+            {displayProjects.map((project) => (
               <div key={project.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
                 <div className="relative h-48 bg-gray-200">
                   <img 
-                    src={project.image} 
+                    src={getProjectImage(project)} 
                     alt={project.name}
                     className="w-full h-full object-cover"
                   />
                   <div className="absolute top-3 right-3">
-                    {getVerificationBadge(project.verification_status)}
+                    {getVerificationBadge(project.verified)}
                   </div>
                 </div>
                 
@@ -302,7 +370,7 @@ const MarketplacePage: React.FC = () => {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {credits.filter(credit => credit.status === 'available').map((credit) => {
-                    const project = projects.find(p => p.id === credit.project_id);
+                    const project = displayProjects.find(p => p.id === credit.project_id);
                     return (
                       <tr key={credit.id} className="hover:bg-gray-50">
                         <td className="px-6 py-4 whitespace-nowrap">
@@ -369,13 +437,13 @@ const MarketplacePage: React.FC = () => {
               </div>
               
               {(() => {
-                const project = projects.find(p => p.id === selectedProject);
+                const project = displayProjects.find(p => p.id === selectedProject);
                 if (!project) return null;
                 
                 return (
                   <div className="space-y-4">
                     <img 
-                      src={project.image} 
+                      src={getProjectImage(project)} 
                       alt={project.name}
                       className="w-full h-48 object-cover rounded-lg"
                     />
