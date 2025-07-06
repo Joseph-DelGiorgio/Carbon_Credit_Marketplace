@@ -97,24 +97,23 @@ export const useSmartContracts = () => {
       metadata: string;
     }) => {
       if (!account?.address) throw new Error('Wallet not connected');
-      return signAndExecute({
-        transaction: {
-          kind: 'moveCall',
-          target: `${PACKAGE_ID}::${CARBON_CREDIT_MODULE}::create_project`,
-          arguments: [
-            { type: 'string', value: name },
-            { type: 'string', value: location },
-            { type: 'string', value: projectType },
-            { type: 'string', value: description },
-            { type: 'u64', value: totalCredits },
-            { type: 'u64', value: Math.floor(pricePerCredit * 1000000000) }, // Convert SUI to MIST (9 decimal places)
-            { type: 'vector<string>', value: coBenefits },
-            { type: 'vector<u8>', value: sdgGoals },
-            { type: 'u64', value: Math.floor(fundingGoal * 1000000000) }, // Convert SUI to MIST
-            { type: 'string', value: metadata }
-          ]
-        }
-      } as any);
+      const tx = new Transaction();
+      tx.moveCall({
+        target: `${PACKAGE_ID}::${CARBON_CREDIT_MODULE}::create_project`,
+        arguments: [
+          tx.pure('string', name),
+          tx.pure('string', location),
+          tx.pure('string', projectType),
+          tx.pure('string', description),
+          tx.pure('u64', totalCredits),
+          tx.pure('u64', Math.floor(pricePerCredit * 1000000000)), // Convert SUI to MIST (9 decimal places)
+          tx.pure('vector<string>', coBenefits),
+          tx.pure('vector<u8>', sdgGoals),
+          tx.pure('u64', Math.floor(fundingGoal * 1000000000)), // Convert SUI to MIST
+          tx.pure('string', metadata)
+        ]
+      });
+      return signAndExecute({ transaction: tx });
     }
   });
 
