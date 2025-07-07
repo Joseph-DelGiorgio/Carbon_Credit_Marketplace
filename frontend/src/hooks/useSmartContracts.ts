@@ -164,18 +164,20 @@ export const useSmartContracts = () => {
       if (!account?.address) throw new Error('Wallet not connected');
       const tx = new Transaction();
       tx.moveCall({
-        target: `${PACKAGE_ID}::${CARBON_CREDIT_MODULE}::create_listing`,
+        package: PACKAGE_ID,
+        module: CARBON_CREDIT_MODULE,
+        function: 'create_listing',
         arguments: [
           tx.object(creditId),
-          tx.pure(price),
-          tx.pure(quantity)
+          tx.pure(price, 'u64'),
+          tx.pure(quantity, 'u64')
         ]
       });
-      return signAndExecute({ transactionBlock: tx });
+      return signAndExecute({ transaction: tx });
     }
   });
 
-  // Buy credits (mock implementation)
+  // Buy credits from a listing
   const buyCredits = useMutation({
     mutationFn: async ({ 
       listingId, 
@@ -186,17 +188,22 @@ export const useSmartContracts = () => {
     }) => {
       if (!account?.address) throw new Error('Wallet not connected');
       
-      // Mock implementation - simulate a delay and success
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      const tx = new Transaction();
       
-      // In a real implementation, this would call the smart contract
-      // For now, just return a success response
-      return {
-        digest: 'mock-transaction-digest-' + Date.now(),
-        effects: {
-          status: { status: 'success' }
-        }
-      };
+      // Split the required amount of SUI for payment
+      const payment = tx.splitCoins(tx.gas, [amount * 1000000000]); // Convert to MIST (smallest unit)
+      
+      tx.moveCall({
+        package: PACKAGE_ID,
+        module: CARBON_CREDIT_MODULE,
+        function: 'buy_credits',
+        arguments: [
+          tx.object(listingId),
+          payment
+        ]
+      });
+      
+      return signAndExecute({ transaction: tx });
     }
   });
 
@@ -212,13 +219,15 @@ export const useSmartContracts = () => {
       if (!account?.address) throw new Error('Wallet not connected');
       const tx = new Transaction();
       tx.moveCall({
-        target: `${PACKAGE_ID}::${CARBON_CREDIT_MODULE}::retire_credit`,
+        package: PACKAGE_ID,
+        module: CARBON_CREDIT_MODULE,
+        function: 'retire_credit',
         arguments: [
           tx.object(creditId),
-          tx.pure(reason)
+          tx.pure(reason, 'string')
         ]
       });
-      return signAndExecute({ transactionBlock: tx });
+      return signAndExecute({ transaction: tx });
     }
   });
 
@@ -234,13 +243,15 @@ export const useSmartContracts = () => {
       if (!account?.address) throw new Error('Wallet not connected');
       const tx = new Transaction();
       tx.moveCall({
-        target: `${PACKAGE_ID}::${CARBON_CREDIT_MODULE}::fund_project`,
+        package: PACKAGE_ID,
+        module: CARBON_CREDIT_MODULE,
+        function: 'fund_project',
         arguments: [
           tx.object(projectId),
-          tx.pure(amount)
+          tx.pure(amount, 'u64')
         ]
       });
-      return signAndExecute({ transactionBlock: tx });
+      return signAndExecute({ transaction: tx });
     }
   });
 
