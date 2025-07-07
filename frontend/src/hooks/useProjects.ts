@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useCurrentAccount } from '@mysten/dapp-kit';
+import { SuiClient } from '@mysten/sui/client';
 import { useSmartContracts } from './useSmartContracts';
 import { useState } from 'react';
 
@@ -113,14 +114,54 @@ export const useProjects = (filters?: ProjectFilters) => {
       if (!account?.address) return [];
       console.log('Fetching user projects for:', account.address);
       
-      // Filter projects by developer address (include both real and dynamic projects)
-      const allProjects = [...realProjects, ...dynamicProjects];
-      const userProjects = allProjects.filter(project => 
-        project.developer === account.address
-      );
-      
-      console.log('Found', userProjects.length, 'user projects');
-      return userProjects;
+      try {
+        // Fetch real on-chain projects owned by the user
+        const suiClient = new SuiClient({ url: 'https://fullnode.testnet.sui.io:443' });
+        const response = await suiClient.getOwnedObjects({
+          owner: account.address,
+          filter: {
+            Package: '0x864b5341edda1e1e71485e4f0fedf59079a66ee65cfb77acf38843da0c884cae'
+          },
+          options: {
+            showContent: true,
+            showDisplay: true
+          }
+        });
+
+        const onchainProjects: CarbonProject[] = [];
+        
+        for (const obj of response.data) {
+          if (obj.data?.type?.includes('Project')) {
+            const content = obj.data.content as any;
+            if (content) {
+              onchainProjects.push({
+                id: obj.data.objectId,
+                name: content.fields?.name || 'Unnamed Project',
+                description: content.fields?.description || 'No description',
+                location: content.fields?.location || 'Unknown',
+                project_type: content.fields?.project_type || 'Unknown',
+                developer: account.address,
+                total_credits: content.fields?.total_credits || 0,
+                available_credits: (content.fields?.total_credits || 0) - (content.fields?.credits_issued || 0),
+                price_per_credit: content.fields?.price_per_credit || 0,
+                verified: content.fields?.verification_status === 1,
+                created_at: content.fields?.created_at || Date.now(),
+                metadata: content.fields?.metadata || '{}'
+              });
+            }
+          }
+        }
+        
+        // Combine on-chain projects with dynamic projects (newly created ones)
+        const allUserProjects = [...onchainProjects, ...dynamicProjects];
+        console.log('Found', allUserProjects.length, 'user projects (on-chain:', onchainProjects.length, ', dynamic:', dynamicProjects.length, ')');
+        return allUserProjects;
+      } catch (error) {
+        console.error('Error fetching on-chain projects:', error);
+        // Fallback to dynamic projects only
+        console.log('Found', dynamicProjects.length, 'dynamic projects');
+        return dynamicProjects;
+      }
     },
     enabled: !!account?.address,
     staleTime: 30000,
@@ -212,10 +253,37 @@ export const useProjects = (filters?: ProjectFilters) => {
   // Create project mutation
   const createProjectMutation = useMutation({
     mutationFn: createProject.mutateAsync,
-    onSuccess: (result) => {
+    onSuccess: (result, variables) => {
       console.log('Project created successfully:', result);
-      // Add the new project to the dynamic projects list
-      // Note: In a real implementation, you'd extract the project ID from the transaction result
+      
+      // Extract project ID from the transaction result
+      // For now, we'll use a timestamp-based ID since the effects structure is complex
+      const projectId = `project_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
+      if (projectId) {
+        // Create a new project object from the form data
+        const newProject: CarbonProject = {
+          id: projectId,
+          name: variables.name,
+          description: variables.description,
+          location: variables.location,
+          project_type: variables.projectType,
+          developer: account?.address || '',
+          total_credits: variables.totalCredits,
+          available_credits: variables.totalCredits, // Initially all credits are available
+          price_per_credit: variables.pricePerCredit,
+          verified: false, // New projects start as unverified
+          created_at: Date.now(),
+          metadata: variables.metadata
+        };
+        
+        // Add the new project to the dynamic projects list
+        setDynamicProjects(prev => [...prev, newProject]);
+        
+        console.log('Added new project to dynamic projects:', newProject);
+      }
+      
+      // Invalidate queries to refresh the data
       queryClient.invalidateQueries({ queryKey: ['projects'] });
       queryClient.invalidateQueries({ queryKey: ['userProjects'] });
     },
