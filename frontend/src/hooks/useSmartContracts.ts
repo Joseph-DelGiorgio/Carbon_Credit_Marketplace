@@ -188,37 +188,23 @@ export const useSmartContracts = () => {
     }) => {
       if (!account?.address) throw new Error('Wallet not connected');
       
-      // For development/testing, we can force real transactions even with mock data
-      const FORCE_REAL_TRANSACTIONS = true; // Set to false to use mock implementation
+      console.log('Executing buy_credits transaction:', { listingId, amount });
       
-      // Check if this is a mock listing ID (doesn't start with 0x)
-      if (!listingId.startsWith('0x') && !FORCE_REAL_TRANSACTIONS) {
-        // This is mock data - simulate the transaction
-        console.log('Using mock implementation for listing:', listingId);
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        
-        return {
-          digest: 'mock-transaction-digest-' + Date.now(),
-          effects: {
-            status: { status: 'success' }
-          }
-        };
-      }
-      
-      // Real blockchain transaction
-      console.log('Executing real blockchain transaction for listing:', listingId);
-      
-      return signAndExecute({
-        transaction: {
-          moveCall: {
-            target: `${PACKAGE_ID}::${CARBON_CREDIT_MODULE}::buy_credits`,
-            arguments: [
-              { type: 'object', value: listingId },
-              { type: 'u64', value: amount * 1000000000 } // Convert to MIST (smallest unit)
-            ]
-          }
-        }
+      // Use the Transaction class like in Flight Insurance v2
+      const tx = new Transaction();
+      tx.moveCall({
+        package: PACKAGE_ID,
+        module: CARBON_CREDIT_MODULE,
+        function: 'buy_credits',
+        arguments: [
+          tx.object(listingId),
+          tx.pure('u64', amount)
+        ]
       });
+      
+      const result = await signAndExecute({ transaction: tx });
+      console.log('Buy credits transaction result:', result);
+      return result;
     }
   });
 
