@@ -339,8 +339,8 @@ const MarketplacePage: React.FC = () => {
                 
                 <div className="p-6">
                   <div className="flex items-center justify-between mb-2">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getProjectTypeColor(project.project_type)}`}>
-                      {project.project_type.replace('_', ' ').toUpperCase()}
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getProjectTypeColor(project.project_type || 'unknown')}`}>
+                      {(project.project_type || 'Unknown').replace('_', ' ').toUpperCase()}
                     </span>
                     <span className="text-sm text-gray-500">
                       {new Date(project.created_at).toLocaleDateString()}
@@ -512,7 +512,7 @@ const MarketplacePage: React.FC = () => {
                       </div>
                       <div>
                         <span className="text-sm text-gray-500">Project Type</span>
-                        <div className="font-medium">{project.project_type.replace('_', ' ')}</div>
+                        <div className="font-medium">{(project.project_type || 'Unknown').replace('_', ' ')}</div>
                       </div>
                       <div>
                         <span className="text-sm text-gray-500">Total Credits</span>
