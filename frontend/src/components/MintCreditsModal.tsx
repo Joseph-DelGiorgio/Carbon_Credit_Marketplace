@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useSmartContracts } from '../hooks/useSmartContracts';
+import { useCurrentAccount } from '@mysten/dapp-kit';
 import type { CarbonProject } from '../hooks/useProjects';
 
 interface MintCreditsModalProps {
@@ -10,13 +11,22 @@ interface MintCreditsModalProps {
 
 const MintCreditsModal: React.FC<MintCreditsModalProps> = ({ isOpen, onClose, project }) => {
   const { mintCredits } = useSmartContracts();
+  const account = useCurrentAccount();
   const [co2Kg, setCo2Kg] = useState(100);
   const [metadata, setMetadata] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const maxCredits = project.total_credits - (project.total_credits - project.available_credits);
+  
+  // Check if user owns this project
+  const userOwnsProject = account?.address === project.developer;
 
   const handleMint = async () => {
+    if (!userOwnsProject) {
+      alert('You can only mint credits for projects you own. Please create your own project first.');
+      return;
+    }
+
     if (co2Kg <= 0 || co2Kg > maxCredits) {
       alert(`Please enter a valid amount between 1 and ${maxCredits.toLocaleString()}`);
       return;
@@ -27,7 +37,7 @@ const MintCreditsModal: React.FC<MintCreditsModalProps> = ({ isOpen, onClose, pr
       await mintCredits.mutateAsync({
         projectId: project.id,
         co2Kg: co2Kg,
-        metadata: metadata || JSON.stringify({ minted_at: new Date().toISOString() })
+        metadata: metadata || `minted_at_${new Date().toISOString()}`
       });
       
       alert(`Successfully minted ${co2Kg.toLocaleString()} kg of CO2 credits for ${project.name}!`);
@@ -120,6 +130,20 @@ const MintCreditsModal: React.FC<MintCreditsModalProps> = ({ isOpen, onClose, pr
               </div>
             </div>
 
+            {/* Ownership Warning */}
+            {!userOwnsProject && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <div className="flex items-center">
+                  <svg className="w-5 h-5 text-yellow-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                  <span className="text-sm text-yellow-800">
+                    You can only mint credits for projects you own. This project belongs to {project.developer.slice(0, 6)}...{project.developer.slice(-4)}.
+                  </span>
+                </div>
+              </div>
+            )}
+
             {/* Action Buttons */}
             <div className="flex space-x-3 pt-4">
               <button
@@ -130,7 +154,7 @@ const MintCreditsModal: React.FC<MintCreditsModalProps> = ({ isOpen, onClose, pr
               </button>
               <button
                 onClick={handleMint}
-                disabled={isSubmitting || co2Kg <= 0 || co2Kg > maxCredits}
+                disabled={isSubmitting || co2Kg <= 0 || co2Kg > maxCredits || !userOwnsProject}
                 className="flex-1 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 {isSubmitting ? (
@@ -141,6 +165,8 @@ const MintCreditsModal: React.FC<MintCreditsModalProps> = ({ isOpen, onClose, pr
                     </svg>
                     Minting...
                   </div>
+                ) : !userOwnsProject ? (
+                  'Not Your Project'
                 ) : (
                   `Mint ${co2Kg.toLocaleString()} Credits`
                 )}

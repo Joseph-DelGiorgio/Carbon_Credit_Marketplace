@@ -45,7 +45,7 @@ const BuyCreditsModal: React.FC<BuyCreditsModalProps> = ({ isOpen, onClose, cred
       
       const result = await buyCredits.mutateAsync({
         listingId: credit.id,
-        amount: amount
+        payment: totalPrice * 1000000000 // Convert SUI to MIST
       });
       
       console.log('Purchase successful:', result);

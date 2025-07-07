@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Transaction } from '@mysten/sui/transactions';
 
 // Deployed contract addresses
-const PACKAGE_ID = '0x56ed4d2202dfa0af48f7fd226f7212a043dad81cde369eb208cff339d5689d9e';
+const PACKAGE_ID = '0x864b5341edda1e1e71485e4f0fedf59079a66ee65cfb77acf38843da0c884cae';
 const UPGRADE_CAP_ID = '0x5bc2be0185e8274511f8229bb5d05d3eab8aa3b13e6069e8fb1c8235d4cb8133';
 
 // Module names
@@ -102,21 +102,19 @@ export const useSmartContracts = () => {
     }) => {
       if (!account?.address) throw new Error('Wallet not connected');
       const tx = new Transaction();
-      (tx as any).moveCall({
-        package: PACKAGE_ID,
-        module: CARBON_CREDIT_MODULE,
-        function: 'create_project',
+      tx.moveCall({
+        target: `${PACKAGE_ID}::${CARBON_CREDIT_MODULE}::create_project`,
         arguments: [
-          (tx as any).pure('string', name),
-          (tx as any).pure('string', location),
-          (tx as any).pure('string', projectType),
-          (tx as any).pure('string', description),
-          (tx as any).pure('u64', totalCredits),
-          (tx as any).pure('u64', Math.floor(pricePerCredit * 1000000000)), // Convert SUI to MIST (9 decimal places)
-          (tx as any).pure('vector<string>', coBenefits),
-          (tx as any).pure('vector<u8>', sdgGoals),
-          (tx as any).pure('u64', Math.floor(fundingGoal * 1000000000)), // Convert SUI to MIST
-          (tx as any).pure('string', metadata)
+          tx.pure.string(name),
+          tx.pure.string(location),
+          tx.pure.string(projectType),
+          tx.pure.string(description),
+          tx.pure.u64(totalCredits),
+          tx.pure.u64(Math.floor(pricePerCredit * 1000000000)), // Convert SUI to MIST (9 decimal places)
+          tx.pure.string(JSON.stringify(coBenefits)), // Convert array to JSON string
+          tx.pure.string(JSON.stringify(sdgGoals)), // Convert array to JSON string
+          tx.pure.u64(Math.floor(fundingGoal * 1000000000)), // Convert SUI to MIST
+          tx.pure.string(metadata)
         ]
       });
       return signAndExecute({ transaction: tx });
@@ -135,18 +133,52 @@ export const useSmartContracts = () => {
       metadata: string;
     }) => {
       if (!account?.address) throw new Error('Wallet not connected');
-      return signAndExecute({
-        transaction: {
-          moveCall: {
-            target: `${PACKAGE_ID}::${CARBON_CREDIT_MODULE}::mint_credits`,
-            arguments: [
-              { type: 'object', value: projectId },
-              { type: 'u64', value: co2Kg },
-              { type: 'string', value: metadata }
-            ]
-          }
-        }
+      
+      // Get the developer cap ID from the onchain config
+      const developerCapId = '0x2680f9f98247dcab1f4214bff86ac50cd76f017240cb872dfcf85d5c8001817e';
+      
+      console.log('Minting credits with:', { projectId, co2Kg, metadata, developerCapId });
+      
+      // Use the same pattern as the working buy_credits function
+      const tx = new Transaction();
+      tx.moveCall({
+        target: `${PACKAGE_ID}::${CARBON_CREDIT_MODULE}::mint_credits`,
+        arguments: [
+          tx.object(developerCapId), // ProjectDeveloperCap object
+          tx.object(projectId), // Project object (mutable reference)
+          tx.pure.u64(co2Kg),
+          tx.pure.string(metadata || 'minted_via_frontend') // Use simple string, not JSON
+        ]
       });
+      
+      console.log('Transaction created:', tx);
+      
+      try {
+        const result = await signAndExecute({ transaction: tx });
+        console.log('Mint credits result:', result);
+        return result;
+      } catch (error: any) {
+        console.error('Mint credits transaction failed:', error);
+        // Log more details about the error
+        if (error?.message) {
+          console.error('Error message:', error.message);
+        }
+        if (error?.code) {
+          console.error('Error code:', error.code);
+        }
+        if (error?.data) {
+          console.error('Error data:', error.data);
+        }
+        throw error;
+      }
+    },
+    onError: (error) => {
+      console.error('Mint credits error:', error);
+      // Check if it's a permission error
+      if (error.message?.includes('ENOT_PROJECT_DEVELOPER')) {
+        throw new Error('You do not have permission to mint credits for this project. Only the project developer can mint credits.');
+      }
+      throw error;
     }
   });
 
@@ -154,23 +186,18 @@ export const useSmartContracts = () => {
   const createListing = useMutation({
     mutationFn: async ({ 
       creditId, 
-      price, 
-      quantity 
+      price
     }: {
       creditId: string;
-      price: number;
-      quantity: number;
+      price: number; // Price in MIST (1 SUI = 1_000_000_000 MIST)
     }) => {
       if (!account?.address) throw new Error('Wallet not connected');
       const tx = new Transaction();
       tx.moveCall({
-        package: PACKAGE_ID,
-        module: CARBON_CREDIT_MODULE,
-        function: 'create_listing',
+        target: `${PACKAGE_ID}::${CARBON_CREDIT_MODULE}::create_listing`,
         arguments: [
-          tx.object(creditId),
-          tx.pure(price, 'u64'),
-          tx.pure(quantity, 'u64')
+          tx.object(creditId), // CarbonCredit object
+          tx.pure.u64(price)   // Price per credit in MIST
         ]
       });
       return signAndExecute({ transaction: tx });
@@ -181,30 +208,43 @@ export const useSmartContracts = () => {
   const buyCredits = useMutation({
     mutationFn: async ({ 
       listingId, 
-      amount 
+      payment 
     }: {
       listingId: string;
-      amount: number;
+      payment: number; // Amount in MIST (1 SUI = 1_000_000_000 MIST)
     }) => {
       if (!account?.address) throw new Error('Wallet not connected');
       
-      console.log('Executing buy_credits transaction:', { listingId, amount });
+      console.log('Executing buy_credits transaction:', { listingId, payment });
       
       // Use the Transaction class like in Flight Insurance v2
       const tx = new Transaction();
       tx.moveCall({
-        package: PACKAGE_ID,
-        module: CARBON_CREDIT_MODULE,
-        function: 'buy_credits',
+        target: `${PACKAGE_ID}::${CARBON_CREDIT_MODULE}::buy_credits`,
         arguments: [
           tx.object(listingId),
-          tx.pure('u64', amount)
+          tx.splitCoins(tx.gas, [payment]) // Split coins from gas for payment
         ]
       });
       
-      const result = await signAndExecute({ transaction: tx });
-      console.log('Buy credits transaction result:', result);
-      return result;
+      try {
+        const result = await signAndExecute({ transaction: tx });
+        console.log('Buy credits transaction result:', result);
+        return result;
+      } catch (error: any) {
+        console.error('Buy credits transaction failed:', error);
+        // Log more details about the error
+        if (error?.message) {
+          console.error('Error message:', error.message);
+        }
+        if (error?.code) {
+          console.error('Error code:', error.code);
+        }
+        if (error?.data) {
+          console.error('Error data:', error.data);
+        }
+        throw error;
+      }
     }
   });
 
@@ -220,12 +260,10 @@ export const useSmartContracts = () => {
       if (!account?.address) throw new Error('Wallet not connected');
       const tx = new Transaction();
       tx.moveCall({
-        package: PACKAGE_ID,
-        module: CARBON_CREDIT_MODULE,
-        function: 'retire_credit',
+        target: `${PACKAGE_ID}::${CARBON_CREDIT_MODULE}::retire_credit`,
         arguments: [
           tx.object(creditId),
-          tx.pure(reason, 'string')
+          tx.pure.string(reason)
         ]
       });
       return signAndExecute({ transaction: tx });
@@ -239,17 +277,15 @@ export const useSmartContracts = () => {
       amount 
     }: {
       projectId: string;
-      amount: number;
+      amount: number; // Amount in MIST (1 SUI = 1_000_000_000 MIST)
     }) => {
       if (!account?.address) throw new Error('Wallet not connected');
       const tx = new Transaction();
       tx.moveCall({
-        package: PACKAGE_ID,
-        module: CARBON_CREDIT_MODULE,
-        function: 'fund_project',
+        target: `${PACKAGE_ID}::${CARBON_CREDIT_MODULE}::fund_project`,
         arguments: [
           tx.object(projectId),
-          tx.pure(amount, 'u64')
+          tx.splitCoins(tx.gas, [amount]) // Split coins from gas for funding
         ]
       });
       return signAndExecute({ transaction: tx });

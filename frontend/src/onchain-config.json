@@ -4,24 +4,24 @@
   "developerCapId": "0x2680f9f98247dcab1f4214bff86ac50cd76f017240cb872dfcf85d5c8001817e",
   "projects": [
     {
-      "id": "0xa3bf966fc2c061e98a520b69667321f1f8099e4d52ee0eb41f5949e24528e840",
-      "name": "Real Project 1"
+      "id": "0x0cc7899704ae2055e9b52c7e214874e75dc7f0b7f8dceb4bdfa978a0ce5d507c",
+      "name": "Real Project 1 (Available: 1000 credits)"
     },
     {
-      "id": "0x74ae581dd43e40e06eb164338d955495cae0128065da9201de0fdc45d3ac3569",
+      "id": "0x4af69381fddbec56f28e50261c5892d2c3b3ab390febb934f8ecf5b56ed25e00",
       "name": "Real Project 2"
     },
     {
-      "id": "0x8b5c4d3e2f1a0b9c8d7e6f5a4b3c2d1e0f9a8b7c6d5e4f3a2b1c0d9e8f7a6b5",
+      "id": "0x7e8744f03476e46210449e32889a946e9f8d6d77fec319289c8a2c94f4a74867",
       "name": "Real Project 3"
     },
     {
-      "id": "0x9c6d5e4f3a2b1c0d9e8f7a6b5c4d3e2f1a0b9c8d7e6f5a4b3c2d1e0f9a8b7c6",
+      "id": "0xa3bf966fc2c061e98a520b69667321f1f8099e4d52ee0eb41f5949e24528e840",
       "name": "Real Project 4"
     },
     {
-      "id": "0xad7e6f5a4b3c2d1e0f9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d3e2f1a0b9c8d7",
-      "name": "Real Project 5"
+      "id": "0xcbbb97facb85cc31239b8c5f121a801becbc14dcd402af30b2f15b2e6e4faafa",
+      "name": "Real Project 5 (Full: 1000/1000 credits)"
     }
   ],
   "realListings": [],

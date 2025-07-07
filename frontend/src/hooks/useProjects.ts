@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useCurrentAccount } from '@mysten/dapp-kit';
 import { useSmartContracts } from './useSmartContracts';
+import { useState } from 'react';
 
 // Import real on-chain config
 import onchainConfig from '../onchain-config.json';
@@ -75,6 +76,9 @@ export const useProjects = (filters?: ProjectFilters) => {
   const queryClient = useQueryClient();
   const { createProject, mintCredits, createListing, buyCredits } = useSmartContracts();
 
+  // Dynamic projects array that can be updated when new projects are created
+  const [dynamicProjects, setDynamicProjects] = useState<CarbonProject[]>([]);
+
   // Load real on-chain projects from config and convert to CarbonProject format
   const realProjects: CarbonProject[] = onchainConfig.projects.map((project, index) => ({
     id: project.id,
@@ -91,13 +95,13 @@ export const useProjects = (filters?: ProjectFilters) => {
     metadata: '{}'
   }));
 
-  // Fetch all projects (using real on-chain data)
-  const { data: projects = realProjects, isLoading: projectsLoading } = useQuery({
+  // Fetch all projects (using real on-chain data + dynamic projects)
+  const { data: projects = [...realProjects, ...dynamicProjects], isLoading: projectsLoading } = useQuery({
     queryKey: ['projects'],
     queryFn: async () => {
       console.log('Fetching all projects from blockchain...');
-      console.log('Using real on-chain project data from config');
-      return realProjects;
+      console.log('Using real on-chain project data from config + dynamic projects');
+      return [...realProjects, ...dynamicProjects];
     },
     staleTime: 30000, // 30 seconds
   });
@@ -109,8 +113,9 @@ export const useProjects = (filters?: ProjectFilters) => {
       if (!account?.address) return [];
       console.log('Fetching user projects for:', account.address);
       
-      // Filter projects by developer address
-      const userProjects = realProjects.filter(project => 
+      // Filter projects by developer address (include both real and dynamic projects)
+      const allProjects = [...realProjects, ...dynamicProjects];
+      const userProjects = allProjects.filter(project => 
         project.developer === account.address
       );
       
@@ -132,22 +137,44 @@ export const useProjects = (filters?: ProjectFilters) => {
     createdAt: listing.created_at
   }));
 
+  // Mock listings for testing (using real object IDs)
+  const mockListings: CreditListing[] = [
+    {
+      id: '0xa954ba137edee2a8bd58222d61e27fff4ee46c7b2cf25f8a684239909d1cd2ef', // Real CreditListing ID
+      creditId: '0xad3a6f4448b552595a8ee37f4a8eab7d5b586f80263ed3d66a59e4c4c629141b', // Real CarbonCredit ID
+      seller: account?.address || '0xde5043879bb960b742bd9963bbbb72cf7c46e0c24c54f5859ae2008eced4b997',
+      price: 100000000, // 0.1 SUI in MIST
+      quantity: 1000,
+      active: true,
+      createdAt: Date.now()
+    },
+    {
+      id: '0xc41426c2ef92ab82885638dfe5bcb91b4ca6db725f31dd2d499a64622544370a', // Real CarbonCredit ID as listing ID
+      creditId: '0xc41426c2ef92ab82885638dfe5bcb91b4ca6db725f31dd2d499a64622544370a', // Real CarbonCredit ID
+      seller: account?.address || '0xde5043879bb960b742bd9963bbbb72cf7c46e0c24c54f5859ae2008eced4b997',
+      price: 100000000, // 0.1 SUI in MIST
+      quantity: 500,
+      active: true,
+      createdAt: Date.now()
+    }
+  ];
+
   // Fetch all credit listings
-  const { data: listingsData = realListings, isLoading: listingsLoading } = useQuery({
+  const { data: allCreditListingsData = [...realListings, ...mockListings], isLoading: listingsLoading } = useQuery({
     queryKey: ['listings'],
     queryFn: async () => {
       console.log('Fetching all credit listings...');
-      console.log('Using real listing data from config');
-      return realListings;
+      console.log('Using real listing data from config + mock listings');
+      return [...realListings, ...mockListings];
     },
     staleTime: 30000,
   });
 
-  // Mock carbon credits
+  // Mock carbon credits (using real object IDs)
   const mockCredits: CarbonCredit[] = [
     {
-      id: '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
-      projectId: realProjects[0]?.id || '0x4a9304a9fdbc7b25cb47bd82beacac56e4a83d773b213b8228e3b346b471ccfe',
+      id: '0xad3a6f4448b552595a8ee37f4a8eab7d5b586f80263ed3d66a59e4c4c629141b', // Real CarbonCredit ID
+      projectId: realProjects[0]?.id || '0x0cc7899704ae2055e9b52c7e214874e75dc7f0b7f8dceb4bdfa978a0ce5d507c',
       projectName: 'Real Project 1',
       co2Kg: 1000,
       verificationHash: '0x1234567890abcdef',
@@ -158,8 +185,8 @@ export const useProjects = (filters?: ProjectFilters) => {
       metadata: '{}'
     },
     {
-      id: '0xbcdef12345678901bcdef12345678901bcdef12345678901bcdef1234567890',
-      projectId: realProjects[1]?.id || '0x74ae581dd43e40e06eb164338d955495cae0128065da9201de0fdc45d3ac3569',
+      id: '0xc41426c2ef92ab82885638dfe5bcb91b4ca6db725f31dd2d499a64622544370a', // Real CarbonCredit ID
+      projectId: realProjects[1]?.id || '0x4af69381fddbec56f28e50261c5892d2c3b3ab390febb934f8ecf5b56ed25e00',
       projectName: 'Real Project 2',
       co2Kg: 500,
       verificationHash: '0xabcdef1234567890',
@@ -184,8 +211,11 @@ export const useProjects = (filters?: ProjectFilters) => {
 
   // Create project mutation
   const createProjectMutation = useMutation({
-    mutationFn: createProject,
-    onSuccess: () => {
+    mutationFn: createProject.mutateAsync,
+    onSuccess: (result) => {
+      console.log('Project created successfully:', result);
+      // Add the new project to the dynamic projects list
+      // Note: In a real implementation, you'd extract the project ID from the transaction result
       queryClient.invalidateQueries({ queryKey: ['projects'] });
       queryClient.invalidateQueries({ queryKey: ['userProjects'] });
     },
@@ -193,8 +223,9 @@ export const useProjects = (filters?: ProjectFilters) => {
 
   // Mint credits mutation
   const mintCreditsMutation = useMutation({
-    mutationFn: mintCredits,
-    onSuccess: () => {
+    mutationFn: mintCredits.mutateAsync,
+    onSuccess: (result) => {
+      console.log('Credits minted successfully:', result);
       queryClient.invalidateQueries({ queryKey: ['credits'] });
       queryClient.invalidateQueries({ queryKey: ['projects'] });
     },
@@ -202,8 +233,9 @@ export const useProjects = (filters?: ProjectFilters) => {
 
   // Create listing mutation
   const createListingMutation = useMutation({
-    mutationFn: createListing,
-    onSuccess: () => {
+    mutationFn: createListing.mutateAsync,
+    onSuccess: (result) => {
+      console.log('Listing created successfully:', result);
       queryClient.invalidateQueries({ queryKey: ['listings'] });
       queryClient.invalidateQueries({ queryKey: ['credits'] });
     },
@@ -211,8 +243,9 @@ export const useProjects = (filters?: ProjectFilters) => {
 
   // Buy credits mutation
   const buyCreditsMutation = useMutation({
-    mutationFn: buyCredits,
-    onSuccess: () => {
+    mutationFn: buyCredits.mutateAsync,
+    onSuccess: (result) => {
+      console.log('Credits purchased successfully:', result);
       queryClient.invalidateQueries({ queryKey: ['listings'] });
       queryClient.invalidateQueries({ queryKey: ['credits'] });
     },
@@ -222,7 +255,7 @@ export const useProjects = (filters?: ProjectFilters) => {
     // Return the expected property names that the component is looking for
     allProjects: projects || [],
     userProjects: userProjects || [],
-    allListings: listingsData || [],
+    allListings: allCreditListingsData || [],
     carbonCredits: credits || [],
     isLoadingProjects: projectsLoading,
     isLoadingUserProjects: userProjectsLoading,
