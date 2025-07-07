@@ -155,6 +155,7 @@ const MarketplacePage: React.FC = () => {
   }, [account?.address]);
 
   const handleBuyCredits = (credit: MockCredit) => {
+    console.log('Buy Credits clicked:', credit);
     setSelectedCredit(credit);
   };
 
@@ -516,14 +517,22 @@ const MarketplacePage: React.FC = () => {
        )}
 
        {/* Buy Credits Modal */}
-       {selectedCredit && (
-         <BuyCreditsModal
-           isOpen={!!selectedCredit}
-           onClose={() => setSelectedCredit(null)}
-           credit={selectedCredit}
-           project={displayProjects.find(p => p.id === selectedCredit.project_id)!}
-         />
-       )}
+       {selectedCredit && (() => {
+         const project = displayProjects.find(p => p.id === selectedCredit.project_id);
+         console.log('Modal project lookup:', { selectedCredit, project, displayProjects });
+         if (!project) {
+           console.error('Project not found for credit:', selectedCredit);
+           return null;
+         }
+         return (
+           <BuyCreditsModal
+             isOpen={!!selectedCredit}
+             onClose={() => setSelectedCredit(null)}
+             credit={selectedCredit}
+             project={project}
+           />
+         );
+       })()}
 
        {/* Mint Credits Modal */}
        {selectedProjectForMinting && (
