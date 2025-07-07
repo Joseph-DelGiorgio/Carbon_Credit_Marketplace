@@ -4,7 +4,7 @@
   "developerCapId": "0x2680f9f98247dcab1f4214bff86ac50cd76f017240cb872dfcf85d5c8001817e",
   "projects": [
     {
-      "id": "0x4a9304a9fdbc7b25cb47bd82beacac56e4a83d773b213b8228e3b346b471ccfe",
+      "id": "0xa3bf966fc2c061e98a520b69667321f1f8099e4d52ee0eb41f5949e24528e840",
       "name": "Real Project 1"
     },
     {
@@ -24,35 +24,7 @@
       "name": "Real Project 5"
     }
   ],
-  "realListings": [
-    {
-      "id": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
-      "credit_id": "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
-      "seller": "0xde5043879bb960b742bd9963bbbb72cf7c46e0c24c54f5859ae2008eced4b997",
-      "price": 1.0,
-      "amount": 500,
-      "status": "available",
-      "created_at": 1704067200000
-    },
-    {
-      "id": "0x2345678901bcdef12345678901bcdef12345678901bcdef12345678901bcdef",
-      "credit_id": "0xbcdef12345678901bcdef12345678901bcdef12345678901bcdef1234567890",
-      "seller": "0xde5043879bb960b742bd9963bbbb72cf7c46e0c24c54f5859ae2008eced4b997",
-      "price": 1.5,
-      "amount": 300,
-      "status": "available",
-      "created_at": 1704153600000
-    },
-    {
-      "id": "0x3456789012cdef123456789012cdef123456789012cdef123456789012cdef",
-      "credit_id": "0xcdef123456789012cdef123456789012cdef123456789012cdef1234567890",
-      "seller": "0xde5043879bb960b742bd9963bbbb72cf7c46e0c24c54f5859ae2008eced4b997",
-      "price": 2.0,
-      "amount": 200,
-      "status": "available",
-      "created_at": 1704240000000
-    }
-  ],
+  "realListings": [],
   "instructions": {
     "mintCredits": "Use one of the project IDs above with: sui client call --package <PACKAGE_ID> --module carbon_credit --function mint_credits --args <DEVELOPER_CAP_ID> <PROJECT_ID> <AMOUNT> '{}' --gas-budget 100000000",
     "createListing": "After minting credits, create a listing with: sui client call --package <PACKAGE_ID> --module carbon_credit --function create_listing --args <CREDIT_ID> <PRICE_IN_SUI> --gas-budget 100000000",
@@ -63,4 +35,4 @@
     "sampleCreditId": "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
     "sampleListingId": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"
   }
-} 
+}

@@ -34,10 +34,6 @@ const mockProjects: CarbonProject[] = [
     developer: '0x1234...5678',
     verified: true,
     created_at: Date.now() - 86400000 * 30,
-    co_benefits: ['Biodiversity protection', 'Community development'],
-    sdg_goals: [13, 15],
-    funding_goal: 1000000,
-    funding_raised: 750000,
     metadata: '{"image": "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&h=300&fit=crop"}'
   },
   {
@@ -52,10 +48,6 @@ const mockProjects: CarbonProject[] = [
     developer: '0x8765...4321',
     verified: false,
     created_at: Date.now() - 86400000 * 15,
-    co_benefits: ['Energy access', 'Job creation'],
-    sdg_goals: [7, 8],
-    funding_goal: 2000000,
-    funding_raised: 1200000,
     metadata: '{"image": "https://images.unsplash.com/photo-1509391366360-2e959784a276?w=400&h=300&fit=crop"}'
   },
   {
@@ -70,10 +62,6 @@ const mockProjects: CarbonProject[] = [
     developer: '0xabcd...efgh',
     verified: true,
     created_at: Date.now() - 86400000 * 7,
-    co_benefits: ['Marine life protection', 'Water quality improvement'],
-    sdg_goals: [14, 6],
-    funding_goal: 800000,
-    funding_raised: 600000,
     metadata: '{"image": "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=400&h=300&fit=crop"}'
   }
 ];
@@ -81,8 +69,8 @@ const mockProjects: CarbonProject[] = [
 // Mock listings (these would be created by sellers listing their credits)
 const mockListings = [
   {
-    id: 'listing_1',
-    credit_id: 'credit_1',
+    id: '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+    credit_id: '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
     project_id: '1',
     amount: 1000,
     price: 1.00,
@@ -91,8 +79,8 @@ const mockListings = [
     created_at: Date.now() - 86400000 * 5
   },
   {
-    id: 'listing_2',
-    credit_id: 'credit_2',
+    id: '0x2345678901bcdef12345678901bcdef12345678901bcdef12345678901bcdef',
+    credit_id: '0xbcdef12345678901bcdef12345678901bcdef12345678901bcdef1234567890',
     project_id: '2',
     amount: 500,
     price: 1.00,
@@ -141,7 +129,6 @@ const MarketplacePage: React.FC = () => {
   const [selectedProjectForMinting, setSelectedProjectForMinting] = useState<CarbonProject | null>(null);
   const [isInitializing, setIsInitializing] = useState(false);
   const [projects, setProjects] = useState(mockProjects);
-  const [listings, setListings] = useState(mockListings);
   const [viewMode, setViewMode] = useState<'all' | 'my'>('all');
   const [filters, setFilters] = useState<ProjectFilters>({});
 
@@ -169,7 +156,7 @@ const MarketplacePage: React.FC = () => {
     console.log('Marketplace loaded - manual initialization available via UI');
   }, [account?.address]);
 
-  const handleBuyCredits = (credit: MockListing) => {
+  const handleBuyCredits = (credit: any) => {
     setSelectedCredit(credit);
   };
 
@@ -256,7 +243,7 @@ const MarketplacePage: React.FC = () => {
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-purple-600">
-                {listings.length}
+                {allListings.length}
               </div>
               <div className="text-sm text-gray-600">Available Listings</div>
             </div>
@@ -411,34 +398,36 @@ const MarketplacePage: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {listings.map((listing) => {
-                    const project = displayProjects.find(p => p.id === listing.project_id);
+                  {allListings.map((listing) => {
+                    const project = displayProjects.find(p => p.id === listing.creditId);
+                    const quantity = listing.quantity;
+                    const price = listing.price ? (listing.price / 1_000_000_000) : undefined;
                     return (
-                        <tr key={listing.id} className="hover:bg-gray-50">
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm font-medium text-gray-900">{project?.name}</div>
-                            <div className="text-sm text-gray-500">{project?.location}</div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {listing.amount.toLocaleString()} credits
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            <span className="font-medium text-green-600">{listing.price} SUI</span>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {listing.seller}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            <button
-                              onClick={() => handleBuyCredits(listing)}
-                              className="text-green-600 hover:text-green-900 bg-green-50 hover:bg-green-100 px-3 py-1 rounded-md transition-colors"
-                            >
-                              Buy Credits
-                            </button>
-                          </td>
-                        </tr>
-                      );
-                    })}
+                      <tr key={listing.id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm font-medium text-gray-900">{project?.name}</div>
+                          <div className="text-sm text-gray-500">{project?.location}</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {quantity?.toLocaleString?.()} credits
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          <span className="font-medium text-green-600">{price} SUI</span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {listing.seller}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                          <button
+                            onClick={() => handleBuyCredits(listing)}
+                            className="text-green-600 hover:text-green-900 bg-green-50 hover:bg-green-100 px-3 py-1 rounded-md transition-colors"
+                          >
+                            Buy Credits
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -532,7 +521,7 @@ const MarketplacePage: React.FC = () => {
 
        {/* Buy Credits Modal */}
        {selectedCredit && (() => {
-         const project = displayProjects.find(p => p.id === selectedCredit.project_id);
+         const project = displayProjects.find(p => p.id === selectedCredit.credit_id);
          if (!project) {
            return null;
          }

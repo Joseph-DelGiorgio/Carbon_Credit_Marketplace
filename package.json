@@ -52,5 +52,9 @@
   "bugs": {
     "url": "https://github.com/carbon-marketplace/carbon-credit-marketplace/issues"
   },
-  "homepage": "https://github.com/carbon-marketplace/carbon-credit-marketplace#readme"
+  "homepage": "https://github.com/carbon-marketplace/carbon-credit-marketplace#readme",
+  "dependencies": {
+    "@mysten/dapp-kit": "^0.16.14",
+    "@mysten/sui": "^1.35.0"
+  }
 }
