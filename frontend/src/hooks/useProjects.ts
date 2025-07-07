@@ -21,6 +21,8 @@ export interface CarbonProject {
   project_type: string;
   developer: string;
   total_credits: number;
+  available_credits: number;
+  price_per_credit: number;
   verified: boolean;
   created_at: number;
   metadata: string;
@@ -82,6 +84,8 @@ export const useProjects = (filters?: ProjectFilters) => {
     description: 'Real on-chain carbon credit project',
     developer: account?.address || '0xde5043879bb960b742bd9963bbbb72cf7c46e0c24c54f5859ae2008eced4b997',
     total_credits: 10000,
+    available_credits: 5000,
+    price_per_credit: 25.50,
     verified: true,
     created_at: Date.now(),
     metadata: '{}'
