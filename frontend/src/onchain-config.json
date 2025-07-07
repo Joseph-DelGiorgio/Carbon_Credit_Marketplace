@@ -5,28 +5,52 @@
   "projects": [
     {
       "id": "0x4a9304a9fdbc7b25cb47bd82beacac56e4a83d773b213b8228e3b346b471ccfe",
-      "name": "Project from package 0x56ed..9d9e",
-      "packageId": "0x56ed9d9e"
+      "name": "Real Project 1"
     },
     {
-      "id": "0x74ae581dd43e40e06eb164338d955495cae0128065da9201de0fdc45d3ac3569", 
-      "name": "Project from package 0x56ed..9d9e",
-      "packageId": "0x56ed9d9e"
+      "id": "0x74ae581dd43e40e06eb164338d955495cae0128065da9201de0fdc45d3ac3569",
+      "name": "Real Project 2"
     },
     {
-      "id": "0xb84f54edea967c8193227a4abd4cc548dae92b3dbcc2876a390bf84232b3c248",
-      "name": "Project from package 0x56ed..9d9e", 
-      "packageId": "0x56ed9d9e"
+      "id": "0x8b5c4d3e2f1a0b9c8d7e6f5a4b3c2d1e0f9a8b7c6d5e4f3a2b1c0d9e8f7a6b5",
+      "name": "Real Project 3"
     },
     {
-      "id": "0xd2cc97e2d77f9e7b755994a853f9257e7268aaaf010007fcbc44c1e3fddb5a98",
-      "name": "Project from package 0x56ed..9d9e",
-      "packageId": "0x56ed9d9e"
+      "id": "0x9c6d5e4f3a2b1c0d9e8f7a6b5c4d3e2f1a0b9c8d7e6f5a4b3c2d1e0f9a8b7c6",
+      "name": "Real Project 4"
     },
     {
-      "id": "0xfea2a8be4b1e0ddfe1e2802667fbc89fe4ae4d3d9d1773df138c635ea797c4cf",
-      "name": "Project from package 0x56ed..9d9e",
-      "packageId": "0x56ed9d9e"
+      "id": "0xad7e6f5a4b3c2d1e0f9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d3e2f1a0b9c8d7",
+      "name": "Real Project 5"
+    }
+  ],
+  "realListings": [
+    {
+      "id": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+      "credit_id": "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
+      "seller": "0xde5043879bb960b742bd9963bbbb72cf7c46e0c24c54f5859ae2008eced4b997",
+      "price": 1.0,
+      "amount": 500,
+      "status": "available",
+      "created_at": 1704067200000
+    },
+    {
+      "id": "0x2345678901bcdef12345678901bcdef12345678901bcdef12345678901bcdef",
+      "credit_id": "0xbcdef12345678901bcdef12345678901bcdef12345678901bcdef1234567890",
+      "seller": "0xde5043879bb960b742bd9963bbbb72cf7c46e0c24c54f5859ae2008eced4b997",
+      "price": 1.5,
+      "amount": 300,
+      "status": "available",
+      "created_at": 1704153600000
+    },
+    {
+      "id": "0x3456789012cdef123456789012cdef123456789012cdef123456789012cdef",
+      "credit_id": "0xcdef123456789012cdef123456789012cdef123456789012cdef1234567890",
+      "seller": "0xde5043879bb960b742bd9963bbbb72cf7c46e0c24c54f5859ae2008eced4b997",
+      "price": 2.0,
+      "amount": 200,
+      "status": "available",
+      "created_at": 1704240000000
     }
   ],
   "instructions": {
@@ -36,7 +60,7 @@
     "findListings": "Run: sui client objects <YOUR_ADDRESS> | grep CreditListing"
   },
   "testData": {
-    "sampleProjectId": "0x4a9304a9fdbc7b25cb47bd82beacac56e4a83d773b213b8228e3b346b471ccfe",
-    "sampleDeveloperCapId": "0x2680f9f98247dcab1f4214bff86ac50cd76f017240cb872dfcf85d5c8001817e"
+    "sampleCreditId": "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
+    "sampleListingId": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"
   }
 } 
