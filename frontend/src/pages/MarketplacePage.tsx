@@ -156,6 +156,7 @@ const MarketplacePage: React.FC = () => {
 
   const handleBuyCredits = (credit: MockCredit) => {
     console.log('Buy Credits clicked:', credit);
+    alert('Buy Credits button clicked! Credit ID: ' + credit.id);
     setSelectedCredit(credit);
   };
 
@@ -416,7 +417,10 @@ const MarketplacePage: React.FC = () => {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                           <button
-                            onClick={() => handleBuyCredits(credit)}
+                            onClick={() => {
+                              console.log('Buy Credits button clicked!', credit);
+                              handleBuyCredits(credit);
+                            }}
                             className="text-green-600 hover:text-green-900 bg-green-50 hover:bg-green-100 px-3 py-1 rounded-md transition-colors"
                           >
                             Buy Credits
@@ -524,10 +528,14 @@ const MarketplacePage: React.FC = () => {
            console.error('Project not found for credit:', selectedCredit);
            return null;
          }
+         console.log('Rendering BuyCreditsModal with:', { selectedCredit, project });
          return (
            <BuyCreditsModal
              isOpen={!!selectedCredit}
-             onClose={() => setSelectedCredit(null)}
+             onClose={() => {
+               console.log('Closing modal');
+               setSelectedCredit(null);
+             }}
              credit={selectedCredit}
              project={project}
            />
