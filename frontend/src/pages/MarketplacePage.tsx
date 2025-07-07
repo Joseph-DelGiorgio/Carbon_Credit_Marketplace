@@ -398,37 +398,46 @@ const MarketplacePage: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {credits.filter(credit => credit.status === 'available').map((credit) => {
-                    const project = displayProjects.find(p => p.id === credit.project_id);
-                    return (
-                      <tr key={credit.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">{project?.name}</div>
-                          <div className="text-sm text-gray-500">{project?.location}</div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {credit.amount.toLocaleString()} credits
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          <span className="font-medium text-green-600">{credit.price} SUI</span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {credit.seller}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                          <button
-                            onClick={() => {
-                              console.log('Buy Credits button clicked!', credit);
-                              handleBuyCredits(credit);
-                            }}
-                            className="text-green-600 hover:text-green-900 bg-green-50 hover:bg-green-100 px-3 py-1 rounded-md transition-colors"
-                          >
-                            Buy Credits
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
+                  {(() => {
+                    console.log('Rendering credits table with:', credits);
+                    const availableCredits = credits.filter(credit => credit.status === 'available');
+                    console.log('Available credits:', availableCredits);
+                    return availableCredits.map((credit) => {
+                      const project = displayProjects.find(p => p.id === credit.project_id);
+                      console.log('Rendering credit row:', { credit, project });
+                      return (
+                        <tr key={credit.id} className="hover:bg-gray-50">
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm font-medium text-gray-900">{project?.name}</div>
+                            <div className="text-sm text-gray-500">{project?.location}</div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {credit.amount.toLocaleString()} credits
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            <span className="font-medium text-green-600">{credit.price} SUI</span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {credit.seller}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <div style={{ border: '2px solid red', padding: '10px', margin: '5px' }}>
+                              <button
+                                onClick={() => {
+                                  console.log('Buy Credits button clicked!', credit);
+                                  handleBuyCredits(credit);
+                                }}
+                                className="text-green-600 hover:text-green-900 bg-green-50 hover:bg-green-100 px-3 py-1 rounded-md transition-colors"
+                                style={{ border: '2px solid blue', cursor: 'pointer' }}
+                              >
+                                Buy Credits (TEST)
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    });
+                  })()}
                 </tbody>
               </table>
             </div>
