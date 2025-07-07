@@ -5,6 +5,27 @@ import { useSmartContracts } from './useSmartContracts';
 // Import real on-chain config
 import onchainConfig from '../onchain-config.json';
 
+export interface ProjectFilters {
+  projectType?: string;
+  location?: string;
+  verified?: boolean;
+  minCredits?: number;
+  maxCredits?: number;
+}
+
+export interface CarbonProject {
+  id: string;
+  name: string;
+  description: string;
+  location: string;
+  project_type: string;
+  developer: string;
+  total_credits: number;
+  verified: boolean;
+  created_at: number;
+  metadata: string;
+}
+
 export interface Project {
   id: string;
   name: string;
@@ -47,7 +68,7 @@ export interface CreditListing {
   createdAt: number;
 }
 
-export const useProjects = () => {
+export const useProjects = (filters?: ProjectFilters) => {
   const account = useCurrentAccount();
   const queryClient = useQueryClient();
   const { createProject, mintCredits, createListing, buyCredits } = useSmartContracts();
@@ -211,31 +232,23 @@ export const useProjects = () => {
   });
 
   return {
-    // Data
-    projects,
-    userProjects,
-    listings,
-    credits,
-    
-    // Loading states
-    projectsLoading,
-    userProjectsLoading,
-    listingsLoading,
-    creditsLoading,
-    
-    // Mutations
-    createProject: createProjectMutation.mutate as any,
-    mintCredits: mintCreditsMutation.mutate as any,
-    createListing: createListingMutation.mutate as any,
-    buyCredits: buyCreditsMutation.mutate as any,
-    
+    // Return the expected property names that the component is looking for
+    allProjects: projects || [],
+    userProjects: userProjects || [],
+    allListings: listings || [],
+    carbonCredits: credits || [],
+    isLoadingProjects: projectsLoading,
+    isLoadingUserProjects: userProjectsLoading,
+    isLoadingListings: listingsLoading,
+    isLoadingCredits: creditsLoading,
+    createProject: createProjectMutation.mutate,
+    mintCredits: mintCreditsMutation.mutate,
+    createListing: createListingMutation.mutate,
+    buyCredits: buyCreditsMutation.mutate,
     // Mutation states
     isCreatingProject: createProjectMutation.isPending,
     isMintingCredits: mintCreditsMutation.isPending,
     isCreatingListing: createListingMutation.isPending,
     isBuyingCredits: buyCreditsMutation.isPending,
-    
-    // On-chain config
-    onchainConfig
   };
 }; 

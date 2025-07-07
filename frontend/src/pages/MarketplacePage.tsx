@@ -159,8 +159,8 @@ const MarketplacePage: React.FC = () => {
 
   // Use real data when available, fallback to mock data
   const displayProjects = viewMode === 'my' 
-    ? (userProjects.length > 0 ? userProjects : mockProjects.filter(p => p.developer === account?.address))
-    : (allProjects.length > 0 ? allProjects : mockProjects);
+    ? ((userProjects?.length || 0) > 0 ? userProjects : mockProjects.filter(p => p.developer === account?.address))
+    : ((allProjects?.length || 0) > 0 ? allProjects : mockProjects);
 
   // Initialize marketplace on first load
   useEffect(() => {
