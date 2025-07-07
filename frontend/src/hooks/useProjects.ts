@@ -73,23 +73,17 @@ export const useProjects = (filters?: ProjectFilters) => {
   const queryClient = useQueryClient();
   const { createProject, mintCredits, createListing, buyCredits } = useSmartContracts();
 
-  // Load real on-chain projects from config
-  const realProjects: Project[] = onchainConfig.projects.map((project, index) => ({
+  // Load real on-chain projects from config and convert to CarbonProject format
+  const realProjects: CarbonProject[] = onchainConfig.projects.map((project, index) => ({
     id: project.id,
     name: `Real Project ${index + 1}`,
     location: 'Brazil',
-    projectType: 'Forest Conservation',
+    project_type: 'Forest Conservation',
     description: 'Real on-chain carbon credit project',
     developer: account?.address || '0xde5043879bb960b742bd9963bbbb72cf7c46e0c24c54f5859ae2008eced4b997',
-    totalCredits: 10000,
-    creditsIssued: 0,
-    pricePerCredit: 1000000000, // 1 SUI
-    coBenefits: ['Biodiversity', 'Community Development'],
-    sdgGoals: [13, 15],
-    verificationStatus: 1, // verified
-    fundingGoal: 10000000000,
-    fundingRaised: 0,
-    createdAt: Date.now(),
+    total_credits: 10000,
+    verified: true,
+    created_at: Date.now(),
     metadata: '{}'
   }));
 
