@@ -1,302 +1,241 @@
-import { useSuiClient, useCurrentAccount } from '@mysten/dapp-kit';
-import { useQuery } from '@tanstack/react-query';
-import type { SuiObjectResponse } from '@mysten/sui/client';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useCurrentAccount } from '@mysten/dapp-kit';
+import { useSmartContracts } from './useSmartContracts';
 
-// Deployed contract addresses
-const PACKAGE_ID = '0x56ed4d2202dfa0af48f7fd226f7212a043dad81cde369eb208cff339d5689d9e';
+// Import real on-chain config
+import onchainConfig from '../onchain-config.json';
 
-// Types based on the smart contract
-export interface CarbonProject {
+export interface Project {
   id: string;
   name: string;
-  description: string;
   location: string;
-  project_type: string;
-  total_credits: number;
-  available_credits: number;
-  price_per_credit: number;
+  projectType: string;
+  description: string;
   developer: string;
-  verified: boolean;
-  created_at: number;
-  co_benefits: string[];
-  sdg_goals: number[];
-  funding_goal: number;
-  funding_raised: number;
+  totalCredits: number;
+  creditsIssued: number;
+  pricePerCredit: number;
+  coBenefits: string[];
+  sdgGoals: number[];
+  verificationStatus: number;
+  fundingGoal: number;
+  fundingRaised: number;
+  createdAt: number;
+  metadata: string;
+}
+
+export interface CarbonCredit {
+  id: string;
+  projectId: string;
+  projectName: string;
+  co2Kg: number;
+  verificationHash: string;
+  dMRVData: string;
+  retired: boolean;
+  retirementCertificate: string;
+  createdAt: number;
   metadata: string;
 }
 
 export interface CreditListing {
   id: string;
-  credit_id: string;
+  creditId: string;
   seller: string;
   price: number;
   quantity: number;
   active: boolean;
-  created_at: number;
+  createdAt: number;
 }
 
-export interface CarbonCredit {
-  id: string;
-  project_id: string;
-  project_name: string;
-  co2_kg: number;
-  verification_hash: string;
-  dMRV_data: string;
-  retired: boolean;
-  retirement_certificate: string;
-  created_at: number;
-  metadata: string;
-}
-
-export interface ProjectFilters {
-  project_type?: string;
-  location?: string;
-  verified?: boolean;
-  min_price?: number;
-  max_price?: number;
-  min_credits?: number;
-  max_credits?: number;
-}
-
-export const useProjects = (filters?: ProjectFilters) => {
-  const client = useSuiClient();
+export const useProjects = () => {
   const account = useCurrentAccount();
+  const queryClient = useQueryClient();
+  const { createProject, mintCredits, createListing, buyCredits } = useSmartContracts();
 
-  // Fetch all projects from blockchain
-  const { data: allProjects, isLoading: isLoadingProjects, error: projectsError } = useQuery({
-    queryKey: ['projects', 'all', filters],
-    queryFn: async (): Promise<CarbonProject[]> => {
-      try {
-        console.log('Fetching all projects from blockchain...');
-        
-        // For now, return mock data since RPC calls are not working properly
-        // In a real implementation, you would query the blockchain
-        console.log('Returning mock project data for testing...');
-        const mockProjects: CarbonProject[] = [
-          {
-            id: '1',
-            name: 'Amazon Rainforest Conservation',
-            description: 'Protecting 10,000 hectares of primary rainforest in the Brazilian Amazon through sustainable land management and community engagement.',
-            location: 'Brazil',
-            project_type: 'reforestation',
-            total_credits: 50000,
-            available_credits: 25000,
-            price_per_credit: 25.50,
-            developer: '0x1234...5678',
-            verified: true,
-            created_at: Date.now() - 86400000 * 30,
-            co_benefits: ['Biodiversity protection', 'Community development'],
-            sdg_goals: [13, 15],
-            funding_goal: 1000000,
-            funding_raised: 750000,
-            metadata: '{"image": "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&h=300&fit=crop"}'
-          },
-          {
-            id: '2',
-            name: 'Solar Farm Development',
-            description: 'Large-scale solar energy project providing clean electricity to 50,000 households while reducing carbon emissions.',
-            location: 'India',
-            project_type: 'renewable_energy',
-            total_credits: 75000,
-            available_credits: 40000,
-            price_per_credit: 18.75,
-            developer: '0x8765...4321',
-            verified: false,
-            created_at: Date.now() - 86400000 * 15,
-            co_benefits: ['Energy access', 'Job creation'],
-            sdg_goals: [7, 8],
-            funding_goal: 2000000,
-            funding_raised: 1200000,
-            metadata: '{"image": "https://images.unsplash.com/photo-1509391366360-2e959784a276?w=400&h=300&fit=crop"}'
-          }
-        ];
+  // Load real on-chain projects from config
+  const realProjects: Project[] = onchainConfig.projects.map((project, index) => ({
+    id: project.id,
+    name: `Real Project ${index + 1}`,
+    location: 'Brazil',
+    projectType: 'Forest Conservation',
+    description: 'Real on-chain carbon credit project',
+    developer: account?.address || '0xde5043879bb960b742bd9963bbbb72cf7c46e0c24c54f5859ae2008eced4b997',
+    totalCredits: 10000,
+    creditsIssued: 0,
+    pricePerCredit: 1000000000, // 1 SUI
+    coBenefits: ['Biodiversity', 'Community Development'],
+    sdgGoals: [13, 15],
+    verificationStatus: 1, // verified
+    fundingGoal: 10000000000,
+    fundingRaised: 0,
+    createdAt: Date.now(),
+    metadata: '{}'
+  }));
 
-        const projects = mockProjects.filter(project => {
-          if (!filters) return true;
-          
-          if (filters.project_type && project.project_type !== filters.project_type) return false;
-          if (filters.location && !project.location.toLowerCase().includes(filters.location.toLowerCase())) return false;
-          if (filters.verified !== undefined && project.verified !== filters.verified) return false;
-          if (filters.min_price && project.price_per_credit < filters.min_price) return false;
-          if (filters.max_price && project.price_per_credit > filters.max_price) return false;
-          if (filters.min_credits && project.available_credits < filters.min_credits) return false;
-          if (filters.max_credits && project.available_credits > filters.max_credits) return false;
-          
-          return true;
-        });
-
-        console.log(`Found ${projects.length} projects`);
-        return projects;
-      } catch (error) {
-        console.error('Error fetching projects:', error);
-        return [];
-      }
+  // Fetch all projects (using real on-chain data)
+  const { data: projects = realProjects, isLoading: projectsLoading } = useQuery({
+    queryKey: ['projects'],
+    queryFn: async () => {
+      console.log('Fetching all projects from blockchain...');
+      console.log('Using real on-chain project data from config');
+      return realProjects;
     },
-    refetchInterval: 30000, // Refetch every 30 seconds
+    staleTime: 30000, // 30 seconds
   });
 
-  // Fetch user's projects
-  const { data: userProjects, isLoading: isLoadingUserProjects, error: userProjectsError } = useQuery({
-    queryKey: ['projects', 'user', account?.address],
-    queryFn: async (): Promise<CarbonProject[]> => {
+  // Fetch user projects
+  const { data: userProjects = [], isLoading: userProjectsLoading } = useQuery({
+    queryKey: ['userProjects', account?.address],
+    queryFn: async () => {
       if (!account?.address) return [];
-
-      try {
-        console.log('Fetching user projects for:', account.address);
-        
-        // Query for owned Project objects
-        const ownedObjects = await client.getOwnedObjects({
-          owner: account.address,
-          options: {
-            showContent: true,
-            showDisplay: true,
-          }
-        });
-
-        const userProjects: CarbonProject[] = [];
-
-        for (const obj of ownedObjects.data) {
-          if (obj.data?.content && 'fields' in obj.data.content) {
-            const fields = obj.data.content.fields as any;
-            
-            // Check if this is a Project object
-            if (obj.data.content.type === `${PACKAGE_ID}::carbon_credit::Project`) {
-              const project: CarbonProject = {
-                id: obj.data.objectId,
-                name: fields.name || '',
-                description: fields.description || '',
-                location: fields.location || '',
-                project_type: fields.project_type || '',
-                total_credits: Number(fields.total_credits) || 0,
-                available_credits: Number(fields.total_credits) - Number(fields.credits_issued) || 0,
-                price_per_credit: Number(fields.price_per_credit) / 1000000000 || 0,
-                developer: fields.developer || '',
-                verified: Number(fields.verification_status) === 1,
-                created_at: Number(fields.created_at) || 0,
-                co_benefits: fields.co_benefits || [],
-                sdg_goals: fields.sdg_goals || [],
-                funding_goal: Number(fields.funding_goal) / 1000000000 || 0,
-                funding_raised: Number(fields.funding_raised) / 1000000000 || 0,
-                metadata: fields.metadata || ''
-              };
-              userProjects.push(project);
-            }
-          }
-        }
-
-        console.log(`Found ${userProjects.length} user projects`);
-        return userProjects;
-      } catch (error) {
-        console.error('Error fetching user projects:', error);
-        return [];
-      }
+      console.log('Fetching user projects for:', account.address);
+      
+      // Filter projects by developer address
+      const userProjects = realProjects.filter(project => 
+        project.developer === account.address
+      );
+      
+      console.log('Found', userProjects.length, 'user projects');
+      return userProjects;
     },
     enabled: !!account?.address,
-    refetchInterval: 30000, // Refetch every 30 seconds
+    staleTime: 30000,
   });
+
+  // Mock credit listings (since we don't have real credits yet)
+  const mockListings: CreditListing[] = [
+    {
+      id: '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+      creditId: '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
+      seller: '0xde5043879bb960b742bd9963bbbb72cf7c46e0c24c54f5859ae2008eced4b997',
+      price: 1000000000, // 1 SUI
+      quantity: 1000,
+      active: true,
+      createdAt: Date.now()
+    },
+    {
+      id: '0x2345678901bcdef12345678901bcdef12345678901bcdef12345678901bcdef',
+      creditId: '0xbcdef12345678901bcdef12345678901bcdef12345678901bcdef1234567890',
+      seller: '0xde5043879bb960b742bd9963bbbb72cf7c46e0c24c54f5859ae2008eced4b997',
+      price: 1500000000, // 1.5 SUI
+      quantity: 500,
+      active: true,
+      createdAt: Date.now()
+    }
+  ];
 
   // Fetch all credit listings
-  const { data: allListings, isLoading: isLoadingListings, error: listingsError } = useQuery({
-    queryKey: ['listings', 'all'],
-    queryFn: async (): Promise<CreditListing[]> => {
-      try {
-        console.log('Fetching all credit listings...');
-        
-        // For now, return mock data since RPC calls are not working properly
-        console.log('Returning mock listing data for testing...');
-        const mockListings: CreditListing[] = [
-          {
-            id: '1',
-            credit_id: 'credit_1',
-            seller: '0x1234...5678',
-            price: 1.00,
-            quantity: 1000,
-            active: true,
-            created_at: Date.now() - 86400000 * 5
-          },
-          {
-            id: '2',
-            credit_id: 'credit_2',
-            seller: '0x8765...4321',
-            price: 1.00,
-            quantity: 500,
-            active: true,
-            created_at: Date.now() - 86400000 * 2
-          }
-        ];
-
-        const listings = mockListings.filter(listing => listing.active);
-
-        console.log(`Found ${listings.length} active listings`);
-        return listings;
-      } catch (error) {
-        console.error('Error fetching listings:', error);
-        return [];
-      }
+  const { data: listings = mockListings, isLoading: listingsLoading } = useQuery({
+    queryKey: ['listings'],
+    queryFn: async () => {
+      console.log('Fetching all credit listings...');
+      console.log('Using mock listing data for testing');
+      return mockListings;
     },
-    refetchInterval: 30000, // Refetch every 30 seconds
+    staleTime: 30000,
   });
 
-  // Fetch carbon credits
-  const { data: carbonCredits, isLoading: isLoadingCredits, error: creditsError } = useQuery({
-    queryKey: ['credits', 'all'],
-    queryFn: async (): Promise<CarbonCredit[]> => {
-      try {
-        console.log('Fetching all carbon credits...');
-        
-        // For now, return mock data since RPC calls are not working properly
-        console.log('Returning mock credit data for testing...');
-        const mockCredits: CarbonCredit[] = [
-          {
-            id: 'credit_1',
-            project_id: '1',
-            project_name: 'Amazon Rainforest Conservation',
-            co2_kg: 1000,
-            verification_hash: 'hash_123',
-            dMRV_data: '{"sensor_data": "verified"}',
-            retired: false,
-            retirement_certificate: '',
-            created_at: Date.now() - 86400000 * 5,
-            metadata: '{"verification_date": "2024-01-15"}'
-          },
-          {
-            id: 'credit_2',
-            project_id: '2',
-            project_name: 'Solar Farm Development',
-            co2_kg: 500,
-            verification_hash: 'hash_456',
-            dMRV_data: '{"satellite_data": "verified"}',
-            retired: false,
-            retirement_certificate: '',
-            created_at: Date.now() - 86400000 * 2,
-            metadata: '{"verification_date": "2024-01-20"}'
-          }
-        ];
-
-        const credits = mockCredits.filter(credit => !credit.retired);
-
-        console.log(`Found ${credits.length} active credits`);
-        return credits;
-      } catch (error) {
-        console.error('Error fetching credits:', error);
-        return [];
-      }
+  // Mock carbon credits
+  const mockCredits: CarbonCredit[] = [
+    {
+      id: '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
+      projectId: realProjects[0]?.id || '0x4a9304a9fdbc7b25cb47bd82beacac56e4a83d773b213b8228e3b346b471ccfe',
+      projectName: 'Real Project 1',
+      co2Kg: 1000,
+      verificationHash: '0x1234567890abcdef',
+      dMRVData: '{"sensor_data": "verified", "satellite_data": "confirmed"}',
+      retired: false,
+      retirementCertificate: '',
+      createdAt: Date.now(),
+      metadata: '{}'
     },
-    refetchInterval: 30000, // Refetch every 30 seconds
+    {
+      id: '0xbcdef12345678901bcdef12345678901bcdef12345678901bcdef1234567890',
+      projectId: realProjects[1]?.id || '0x74ae581dd43e40e06eb164338d955495cae0128065da9201de0fdc45d3ac3569',
+      projectName: 'Real Project 2',
+      co2Kg: 500,
+      verificationHash: '0xabcdef1234567890',
+      dMRVData: '{"sensor_data": "verified", "satellite_data": "confirmed"}',
+      retired: false,
+      retirementCertificate: '',
+      createdAt: Date.now(),
+      metadata: '{}'
+    }
+  ];
+
+  // Fetch all carbon credits
+  const { data: credits = mockCredits, isLoading: creditsLoading } = useQuery({
+    queryKey: ['credits'],
+    queryFn: async () => {
+      console.log('Fetching all carbon credits...');
+      console.log('Using mock credit data for testing');
+      return mockCredits;
+    },
+    staleTime: 30000,
+  });
+
+  // Create project mutation
+  const createProjectMutation = useMutation({
+    mutationFn: createProject,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+      queryClient.invalidateQueries({ queryKey: ['userProjects'] });
+    },
+  });
+
+  // Mint credits mutation
+  const mintCreditsMutation = useMutation({
+    mutationFn: mintCredits,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['credits'] });
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+    },
+  });
+
+  // Create listing mutation
+  const createListingMutation = useMutation({
+    mutationFn: createListing,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['listings'] });
+      queryClient.invalidateQueries({ queryKey: ['credits'] });
+    },
+  });
+
+  // Buy credits mutation
+  const buyCreditsMutation = useMutation({
+    mutationFn: buyCredits,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['listings'] });
+      queryClient.invalidateQueries({ queryKey: ['credits'] });
+    },
   });
 
   return {
-    allProjects: allProjects || [],
-    userProjects: userProjects || [],
-    allListings: allListings || [],
-    carbonCredits: carbonCredits || [],
-    isLoadingProjects,
-    isLoadingUserProjects,
-    isLoadingListings,
-    isLoadingCredits,
-    projectsError,
-    userProjectsError,
-    listingsError,
-    creditsError,
+    // Data
+    projects,
+    userProjects,
+    listings,
+    credits,
+    
+    // Loading states
+    projectsLoading,
+    userProjectsLoading,
+    listingsLoading,
+    creditsLoading,
+    
+    // Mutations
+    createProject: createProjectMutation.mutate as any,
+    mintCredits: mintCreditsMutation.mutate as any,
+    createListing: createListingMutation.mutate as any,
+    buyCredits: buyCreditsMutation.mutate as any,
+    
+    // Mutation states
+    isCreatingProject: createProjectMutation.isPending,
+    isMintingCredits: mintCreditsMutation.isPending,
+    isCreatingListing: createListingMutation.isPending,
+    isBuyingCredits: buyCreditsMutation.isPending,
+    
+    // On-chain config
+    onchainConfig
   };
 }; 

@@ -1,0 +1,42 @@
+{
+  "packageId": "0x864b5341edda1e1e71485e4f0fedf59079a66ee65cfb77acf38843da0c884cae",
+  "moduleName": "carbon_credit",
+  "developerCapId": "0x2680f9f98247dcab1f4214bff86ac50cd76f017240cb872dfcf85d5c8001817e",
+  "projects": [
+    {
+      "id": "0x4a9304a9fdbc7b25cb47bd82beacac56e4a83d773b213b8228e3b346b471ccfe",
+      "name": "Project from package 0x56ed..9d9e",
+      "packageId": "0x56ed9d9e"
+    },
+    {
+      "id": "0x74ae581dd43e40e06eb164338d955495cae0128065da9201de0fdc45d3ac3569", 
+      "name": "Project from package 0x56ed..9d9e",
+      "packageId": "0x56ed9d9e"
+    },
+    {
+      "id": "0xb84f54edea967c8193227a4abd4cc548dae92b3dbcc2876a390bf84232b3c248",
+      "name": "Project from package 0x56ed..9d9e", 
+      "packageId": "0x56ed9d9e"
+    },
+    {
+      "id": "0xd2cc97e2d77f9e7b755994a853f9257e7268aaaf010007fcbc44c1e3fddb5a98",
+      "name": "Project from package 0x56ed..9d9e",
+      "packageId": "0x56ed9d9e"
+    },
+    {
+      "id": "0xfea2a8be4b1e0ddfe1e2802667fbc89fe4ae4d3d9d1773df138c635ea797c4cf",
+      "name": "Project from package 0x56ed..9d9e",
+      "packageId": "0x56ed9d9e"
+    }
+  ],
+  "instructions": {
+    "mintCredits": "Use one of the project IDs above with: sui client call --package <PACKAGE_ID> --module carbon_credit --function mint_credits --args <DEVELOPER_CAP_ID> <PROJECT_ID> <AMOUNT> '{}' --gas-budget 100000000",
+    "createListing": "After minting credits, create a listing with: sui client call --package <PACKAGE_ID> --module carbon_credit --function create_listing --args <CREDIT_ID> <PRICE_IN_SUI> --gas-budget 100000000",
+    "findCredits": "Run: sui client objects <YOUR_ADDRESS> | grep CarbonCredit",
+    "findListings": "Run: sui client objects <YOUR_ADDRESS> | grep CreditListing"
+  },
+  "testData": {
+    "sampleProjectId": "0x4a9304a9fdbc7b25cb47bd82beacac56e4a83d773b213b8228e3b346b471ccfe",
+    "sampleDeveloperCapId": "0x2680f9f98247dcab1f4214bff86ac50cd76f017240cb872dfcf85d5c8001817e"
+  }
+} 
