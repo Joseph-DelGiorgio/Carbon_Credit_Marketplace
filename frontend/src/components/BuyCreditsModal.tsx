@@ -23,30 +23,54 @@ const BuyCreditsModal: React.FC<BuyCreditsModalProps> = ({ isOpen, onClose, cred
   const { buyCredits } = useSmartContracts();
   const [amount, setAmount] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const totalPrice = amount * credit.price;
   const maxAmount = credit.amount;
 
   const handleBuy = async () => {
     if (amount <= 0 || amount > maxAmount) {
-      alert('Please enter a valid amount');
+      setError('Please enter a valid amount');
       return;
     }
 
+    setError(null);
     setIsSubmitting(true);
+    
     try {
-      await buyCredits.mutateAsync({
+      console.log('Starting purchase:', { listingId: credit.id, amount });
+      
+      const result = await buyCredits.mutateAsync({
         listingId: credit.id,
         amount: amount
       });
       
-      alert(`Successfully purchased ${amount} credits for ${totalPrice} SUI!`);
+      console.log('Purchase successful:', result);
+      
+      // Show success message
+      const successMessage = `Successfully purchased ${amount} credits for ${totalPrice.toFixed(2)} SUI!\n\nTransaction ID: ${result.digest}`;
+      alert(successMessage);
+      
+      // Close modal
       onClose();
-    } catch (error) {
+      
+      // Reset form
+      setAmount(1);
+      setError(null);
+      
+    } catch (error: any) {
       console.error('Failed to buy credits:', error);
-      alert('Failed to purchase credits. Please try again.');
+      setError(error.message || 'Failed to purchase credits. Please try again.');
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleClose = () => {
+    if (!isSubmitting) {
+      setAmount(1);
+      setError(null);
+      onClose();
     }
   };
 
@@ -59,8 +83,9 @@ const BuyCreditsModal: React.FC<BuyCreditsModalProps> = ({ isOpen, onClose, cred
           <div className="flex justify-between items-start mb-4">
             <h2 className="text-xl font-bold text-gray-900">Buy Carbon Credits</h2>
             <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-600"
+              onClick={handleClose}
+              disabled={isSubmitting}
+              className="text-gray-400 hover:text-gray-600 disabled:opacity-50"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -91,7 +116,8 @@ const BuyCreditsModal: React.FC<BuyCreditsModalProps> = ({ isOpen, onClose, cred
                   max={maxAmount}
                   value={amount}
                   onChange={(e) => setAmount(Math.min(parseInt(e.target.value) || 0, maxAmount))}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                  disabled={isSubmitting}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50"
                 />
                 <span className="text-sm text-gray-500">/ {maxAmount.toLocaleString()}</span>
               </div>
@@ -108,11 +134,24 @@ const BuyCreditsModal: React.FC<BuyCreditsModalProps> = ({ isOpen, onClose, cred
               </div>
             </div>
 
+            {/* Error Message */}
+            {error && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                <div className="flex">
+                  <svg className="w-5 h-5 text-red-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                  </svg>
+                  <span className="text-sm text-red-600">{error}</span>
+                </div>
+              </div>
+            )}
+
             {/* Action Buttons */}
             <div className="flex space-x-3 pt-4">
               <button
-                onClick={onClose}
-                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
+                onClick={handleClose}
+                disabled={isSubmitting}
+                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 Cancel
               </button>

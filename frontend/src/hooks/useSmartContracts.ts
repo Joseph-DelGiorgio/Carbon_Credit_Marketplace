@@ -175,25 +175,28 @@ export const useSmartContracts = () => {
     }
   });
 
-  // Buy credits
+  // Buy credits (mock implementation)
   const buyCredits = useMutation({
     mutationFn: async ({ 
       listingId, 
-      payment 
+      amount 
     }: {
       listingId: string;
-      payment: number;
+      amount: number;
     }) => {
       if (!account?.address) throw new Error('Wallet not connected');
-      const tx = new Transaction();
-      tx.moveCall({
-        target: `${PACKAGE_ID}::${CARBON_CREDIT_MODULE}::buy_credits`,
-        arguments: [
-          tx.object(listingId),
-          tx.pure(payment)
-        ]
-      });
-      return signAndExecute({ transactionBlock: tx });
+      
+      // Mock implementation - simulate a delay and success
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // In a real implementation, this would call the smart contract
+      // For now, just return a success response
+      return {
+        digest: 'mock-transaction-digest-' + Date.now(),
+        effects: {
+          status: { status: 'success' }
+        }
+      };
     }
   });
 

@@ -521,7 +521,7 @@ const MarketplacePage: React.FC = () => {
            isOpen={!!selectedCredit}
            onClose={() => setSelectedCredit(null)}
            credit={selectedCredit}
-           project={projects.find(p => p.id === selectedCredit.project_id)!}
+           project={displayProjects.find(p => p.id === selectedCredit.project_id)!}
          />
        )}
 
