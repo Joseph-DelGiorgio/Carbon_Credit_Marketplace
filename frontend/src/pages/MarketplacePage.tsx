@@ -162,21 +162,11 @@ const MarketplacePage: React.FC = () => {
     ? ((userProjects?.length || 0) > 0 ? userProjects : mockProjects.filter(p => p.developer === account?.address))
     : ((allProjects?.length || 0) > 0 ? allProjects : mockProjects);
 
-  // Initialize marketplace on first load
+  // Initialize marketplace on first load (optional - only if user wants to create projects)
   useEffect(() => {
-    if (account?.address && !isInitializing) {
-      setIsInitializing(true);
-      initializeDeveloperCap.mutateAsync()
-        .then(() => {
-          console.log('Marketplace initialized successfully');
-        })
-        .catch((error: any) => {
-          console.error('Failed to initialize marketplace:', error);
-        })
-        .finally(() => {
-          setIsInitializing(false);
-        });
-    }
+    // Skip automatic initialization to avoid wallet modal positioning issues
+    // Users can manually initialize via the CapabilityInitializer component
+    console.log('Marketplace loaded - manual initialization available via UI');
   }, [account?.address]);
 
   const handleBuyCredits = (credit: MockListing) => {
