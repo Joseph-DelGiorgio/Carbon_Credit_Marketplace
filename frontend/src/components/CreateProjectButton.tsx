@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useSmartContracts } from '../hooks/useSmartContracts';
+import { useProjects } from '../hooks/useProjects';
 
 interface CreateProjectModalProps {
   isOpen: boolean;
@@ -7,7 +7,7 @@ interface CreateProjectModalProps {
 }
 
 const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, onClose }) => {
-  const { createProject } = useSmartContracts();
+  const { createProject, isCreatingProject } = useProjects();
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -21,6 +21,7 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, onClose
     metadata: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const isCreating = isCreatingProject || isSubmitting;
   const [coBenefitInput, setCoBenefitInput] = useState('');
   const [sdgGoalInput, setSdgGoalInput] = useState('');
 
@@ -29,7 +30,7 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, onClose
     setIsSubmitting(true);
     
     try {
-      await createProject.mutateAsync({
+      await createProject({
         name: formData.name,
         description: formData.description,
         location: formData.location,
@@ -324,10 +325,10 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, onClose
             </button>
             <button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isCreating}
               className="flex-1 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50"
             >
-              {isSubmitting ? 'Creating...' : 'Create Project'}
+              {isCreating ? 'Creating...' : 'Create Project'}
             </button>
           </div>
         </form>
