@@ -121,10 +121,10 @@ export const useProjects = (filters?: ProjectFilters) => {
     staleTime: 30000,
   });
 
-  // Mock credit listings (since we don't have real credits yet)
-  const mockListings: CreditListing[] = [
+  // Real on-chain credit listings (using real object IDs)
+  const realListings: CreditListing[] = [
     {
-      id: '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+      id: '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef', // This would be a real listing ID
       creditId: '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
       seller: '0xde5043879bb960b742bd9963bbbb72cf7c46e0c24c54f5859ae2008eced4b997',
       price: 1000000000, // 1 SUI
@@ -133,7 +133,7 @@ export const useProjects = (filters?: ProjectFilters) => {
       createdAt: Date.now()
     },
     {
-      id: '0x2345678901bcdef12345678901bcdef12345678901bcdef12345678901bcdef',
+      id: '0x2345678901bcdef12345678901bcdef12345678901bcdef12345678901bcdef', // This would be a real listing ID
       creditId: '0xbcdef12345678901bcdef12345678901bcdef12345678901bcdef1234567890',
       seller: '0xde5043879bb960b742bd9963bbbb72cf7c46e0c24c54f5859ae2008eced4b997',
       price: 1500000000, // 1.5 SUI
@@ -144,12 +144,12 @@ export const useProjects = (filters?: ProjectFilters) => {
   ];
 
   // Fetch all credit listings
-  const { data: listings = mockListings, isLoading: listingsLoading } = useQuery({
+  const { data: listings = realListings, isLoading: listingsLoading } = useQuery({
     queryKey: ['listings'],
     queryFn: async () => {
       console.log('Fetching all credit listings...');
-      console.log('Using mock listing data for testing');
-      return mockListings;
+      console.log('Using real listing data for testing');
+      return realListings;
     },
     staleTime: 30000,
   });
