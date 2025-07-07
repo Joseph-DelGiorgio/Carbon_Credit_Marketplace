@@ -209,7 +209,7 @@ export const useProjects = (filters?: ProjectFilters) => {
             id: '1',
             credit_id: 'credit_1',
             seller: '0x1234...5678',
-            price: 25.50,
+            price: 1.00,
             quantity: 1000,
             active: true,
             created_at: Date.now() - 86400000 * 5
@@ -218,7 +218,7 @@ export const useProjects = (filters?: ProjectFilters) => {
             id: '2',
             credit_id: 'credit_2',
             seller: '0x8765...4321',
-            price: 18.75,
+            price: 1.00,
             quantity: 500,
             active: true,
             created_at: Date.now() - 86400000 * 2

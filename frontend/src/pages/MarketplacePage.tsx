@@ -82,7 +82,7 @@ const mockCredits = [
     id: '1',
     project_id: '1',
     amount: 1000,
-    price: 25.50,
+    price: 1.00,
     seller: '0x1234...5678',
     status: 'available' as const,
     created_at: Date.now() - 86400000 * 5
@@ -91,7 +91,7 @@ const mockCredits = [
     id: '2',
     project_id: '2',
     amount: 500,
-    price: 18.75,
+    price: 1.00,
     seller: '0x8765...4321',
     status: 'available' as const,
     created_at: Date.now() - 86400000 * 2
@@ -155,8 +155,6 @@ const MarketplacePage: React.FC = () => {
   }, [account?.address]);
 
   const handleBuyCredits = (credit: MockCredit) => {
-    console.log('Buy Credits clicked:', credit);
-    alert('Buy Credits button clicked! Credit ID: ' + credit.id);
     setSelectedCredit(credit);
   };
 
@@ -398,14 +396,9 @@ const MarketplacePage: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {(() => {
-                    console.log('Rendering credits table with:', credits);
-                    const availableCredits = credits.filter(credit => credit.status === 'available');
-                    console.log('Available credits:', availableCredits);
-                    return availableCredits.map((credit) => {
-                      const project = displayProjects.find(p => p.id === credit.project_id);
-                      console.log('Rendering credit row:', { credit, project });
-                      return (
+                  {credits.filter(credit => credit.status === 'available').map((credit) => {
+                    const project = displayProjects.find(p => p.id === credit.project_id);
+                    return (
                         <tr key={credit.id} className="hover:bg-gray-50">
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="text-sm font-medium text-gray-900">{project?.name}</div>
@@ -421,23 +414,16 @@ const MarketplacePage: React.FC = () => {
                             {credit.seller}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            <div style={{ border: '2px solid red', padding: '10px', margin: '5px' }}>
-                              <button
-                                onClick={() => {
-                                  console.log('Buy Credits button clicked!', credit);
-                                  handleBuyCredits(credit);
-                                }}
-                                className="text-green-600 hover:text-green-900 bg-green-50 hover:bg-green-100 px-3 py-1 rounded-md transition-colors"
-                                style={{ border: '2px solid blue', cursor: 'pointer' }}
-                              >
-                                Buy Credits (TEST)
-                              </button>
-                            </div>
+                            <button
+                              onClick={() => handleBuyCredits(credit)}
+                              className="text-green-600 hover:text-green-900 bg-green-50 hover:bg-green-100 px-3 py-1 rounded-md transition-colors"
+                            >
+                              Buy Credits
+                            </button>
                           </td>
                         </tr>
                       );
-                    });
-                  })()}
+                    })}
                 </tbody>
               </table>
             </div>
@@ -532,19 +518,13 @@ const MarketplacePage: React.FC = () => {
        {/* Buy Credits Modal */}
        {selectedCredit && (() => {
          const project = displayProjects.find(p => p.id === selectedCredit.project_id);
-         console.log('Modal project lookup:', { selectedCredit, project, displayProjects });
          if (!project) {
-           console.error('Project not found for credit:', selectedCredit);
            return null;
          }
-         console.log('Rendering BuyCreditsModal with:', { selectedCredit, project });
          return (
            <BuyCreditsModal
              isOpen={!!selectedCredit}
-             onClose={() => {
-               console.log('Closing modal');
-               setSelectedCredit(null);
-             }}
+             onClose={() => setSelectedCredit(null)}
              credit={selectedCredit}
              project={project}
            />

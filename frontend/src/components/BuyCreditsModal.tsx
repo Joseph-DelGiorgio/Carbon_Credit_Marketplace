@@ -25,12 +25,7 @@ const BuyCreditsModal: React.FC<BuyCreditsModalProps> = ({ isOpen, onClose, cred
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  console.log('BuyCreditsModal render:', { isOpen, credit, project });
 
-  // Add a useEffect to log when modal opens/closes
-  React.useEffect(() => {
-    console.log('BuyCreditsModal useEffect - isOpen changed:', isOpen);
-  }, [isOpen]);
 
   const totalPrice = amount * credit.price;
   const maxAmount = credit.amount;
