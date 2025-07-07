@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { useSmartContracts } from '../hooks/useSmartContracts';
 import type { CarbonProject } from '../hooks/useSmartContracts';
 
-interface MockCredit {
+interface MockListing {
   id: string;
+  credit_id: string;
   project_id: string;
   amount: number;
   price: number;
@@ -15,7 +16,7 @@ interface MockCredit {
 interface BuyCreditsModalProps {
   isOpen: boolean;
   onClose: () => void;
-  credit: MockCredit;
+  credit: MockListing;
   project: CarbonProject;
 }
 

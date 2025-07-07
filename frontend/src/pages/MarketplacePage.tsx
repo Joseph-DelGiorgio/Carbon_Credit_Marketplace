@@ -9,8 +9,9 @@ import BuyCreditsModal from '../components/BuyCreditsModal';
 import MintCreditsModal from '../components/MintCreditsModal';
 import type { CarbonProject } from '../hooks/useProjects';
 
-interface MockCredit {
+interface MockListing {
   id: string;
+  credit_id: string;
   project_id: string;
   amount: number;
   price: number;
@@ -77,6 +78,30 @@ const mockProjects: CarbonProject[] = [
   }
 ];
 
+// Mock listings (these would be created by sellers listing their credits)
+const mockListings = [
+  {
+    id: 'listing_1',
+    credit_id: 'credit_1',
+    project_id: '1',
+    amount: 1000,
+    price: 1.00,
+    seller: '0x1234...5678',
+    status: 'available' as const,
+    created_at: Date.now() - 86400000 * 5
+  },
+  {
+    id: 'listing_2',
+    credit_id: 'credit_2',
+    project_id: '2',
+    amount: 500,
+    price: 1.00,
+    seller: '0x8765...4321',
+    status: 'available' as const,
+    created_at: Date.now() - 86400000 * 2
+  }
+];
+
 const mockCredits = [
   {
     id: '1',
@@ -112,11 +137,11 @@ const MarketplacePage: React.FC = () => {
   } = useSmartContracts();
 
   const [selectedProject, setSelectedProject] = useState<string | null>(null);
-  const [selectedCredit, setSelectedCredit] = useState<MockCredit | null>(null);
+  const [selectedCredit, setSelectedCredit] = useState<MockListing | null>(null);
   const [selectedProjectForMinting, setSelectedProjectForMinting] = useState<CarbonProject | null>(null);
   const [isInitializing, setIsInitializing] = useState(false);
   const [projects, setProjects] = useState(mockProjects);
-  const [credits, setCredits] = useState(mockCredits);
+  const [listings, setListings] = useState(mockListings);
   const [viewMode, setViewMode] = useState<'all' | 'my'>('all');
   const [filters, setFilters] = useState<ProjectFilters>({});
 
@@ -154,7 +179,7 @@ const MarketplacePage: React.FC = () => {
     }
   }, [account?.address]);
 
-  const handleBuyCredits = (credit: MockCredit) => {
+  const handleBuyCredits = (credit: MockListing) => {
     setSelectedCredit(credit);
   };
 
@@ -241,7 +266,7 @@ const MarketplacePage: React.FC = () => {
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-purple-600">
-                {credits.filter(c => c.status === 'available').length}
+                {listings.length}
               </div>
               <div className="text-sm text-gray-600">Available Listings</div>
             </div>
@@ -396,26 +421,26 @@ const MarketplacePage: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {credits.filter(credit => credit.status === 'available').map((credit) => {
-                    const project = displayProjects.find(p => p.id === credit.project_id);
+                  {listings.map((listing) => {
+                    const project = displayProjects.find(p => p.id === listing.project_id);
                     return (
-                        <tr key={credit.id} className="hover:bg-gray-50">
+                        <tr key={listing.id} className="hover:bg-gray-50">
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="text-sm font-medium text-gray-900">{project?.name}</div>
                             <div className="text-sm text-gray-500">{project?.location}</div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {credit.amount.toLocaleString()} credits
+                            {listing.amount.toLocaleString()} credits
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            <span className="font-medium text-green-600">{credit.price} SUI</span>
+                            <span className="font-medium text-green-600">{listing.price} SUI</span>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {credit.seller}
+                            {listing.seller}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                             <button
-                              onClick={() => handleBuyCredits(credit)}
+                              onClick={() => handleBuyCredits(listing)}
                               className="text-green-600 hover:text-green-900 bg-green-50 hover:bg-green-100 px-3 py-1 rounded-md transition-colors"
                             >
                               Buy Credits
