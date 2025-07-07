@@ -121,11 +121,12 @@ export const useProjects = (filters?: ProjectFilters) => {
     staleTime: 30000,
   });
 
-  // Real on-chain credit listings (using real object IDs)
+  // Real on-chain credit listings (using real object IDs from config)
   const realListings: CreditListing[] = [
+    // Use real listing ID from config if available, otherwise use placeholder
     {
-      id: '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef', // This would be a real listing ID
-      creditId: '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
+      id: (onchainConfig.testData as any)?.sampleListingId || '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+      creditId: (onchainConfig.testData as any)?.sampleCreditId || '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
       seller: '0xde5043879bb960b742bd9963bbbb72cf7c46e0c24c54f5859ae2008eced4b997',
       price: 1000000000, // 1 SUI
       quantity: 1000,
@@ -133,7 +134,7 @@ export const useProjects = (filters?: ProjectFilters) => {
       createdAt: Date.now()
     },
     {
-      id: '0x2345678901bcdef12345678901bcdef12345678901bcdef12345678901bcdef', // This would be a real listing ID
+      id: '0x2345678901bcdef12345678901bcdef12345678901bcdef12345678901bcdef', // Placeholder for second listing
       creditId: '0xbcdef12345678901bcdef12345678901bcdef12345678901bcdef1234567890',
       seller: '0xde5043879bb960b742bd9963bbbb72cf7c46e0c24c54f5859ae2008eced4b997',
       price: 1500000000, // 1.5 SUI
