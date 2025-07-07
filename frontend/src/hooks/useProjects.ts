@@ -122,11 +122,21 @@ export const useProjects = (filters?: ProjectFilters) => {
   });
 
   // Real on-chain credit listings (using real object IDs from config)
-  const realListings: CreditListing[] = [
-    // Use real listing ID from config if available, otherwise use placeholder
+  const realListings: CreditListing[] = ((onchainConfig as any).realListings || []).map((listing: any) => ({
+    id: listing.id,
+    creditId: listing.credit_id,
+    seller: listing.seller,
+    price: listing.price * 1000000000, // Convert SUI to MIST
+    quantity: listing.amount,
+    active: listing.status === 'available',
+    createdAt: listing.created_at
+  }));
+
+  // Fallback to mock listings if no real listings exist
+  const mockListings: CreditListing[] = [
     {
-      id: (onchainConfig.testData as any)?.sampleListingId || '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
-      creditId: (onchainConfig.testData as any)?.sampleCreditId || '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
+      id: '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+      creditId: '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
       seller: '0xde5043879bb960b742bd9963bbbb72cf7c46e0c24c54f5859ae2008eced4b997',
       price: 1000000000, // 1 SUI
       quantity: 1000,
@@ -134,7 +144,7 @@ export const useProjects = (filters?: ProjectFilters) => {
       createdAt: Date.now()
     },
     {
-      id: '0x2345678901bcdef12345678901bcdef12345678901bcdef12345678901bcdef', // Placeholder for second listing
+      id: '0x2345678901bcdef12345678901bcdef12345678901bcdef12345678901bcdef',
       creditId: '0xbcdef12345678901bcdef12345678901bcdef12345678901bcdef1234567890',
       seller: '0xde5043879bb960b742bd9963bbbb72cf7c46e0c24c54f5859ae2008eced4b997',
       price: 1500000000, // 1.5 SUI
@@ -144,13 +154,15 @@ export const useProjects = (filters?: ProjectFilters) => {
     }
   ];
 
+  const allListings = realListings.length > 0 ? realListings : mockListings;
+
   // Fetch all credit listings
-  const { data: listings = realListings, isLoading: listingsLoading } = useQuery({
+  const { data: listingsData = allListings, isLoading: listingsLoading } = useQuery({
     queryKey: ['listings'],
     queryFn: async () => {
       console.log('Fetching all credit listings...');
       console.log('Using real listing data for testing');
-      return realListings;
+      return allListings;
     },
     staleTime: 30000,
   });
@@ -234,16 +246,16 @@ export const useProjects = (filters?: ProjectFilters) => {
     // Return the expected property names that the component is looking for
     allProjects: projects || [],
     userProjects: userProjects || [],
-    allListings: listings || [],
+    allListings: listingsData || [],
     carbonCredits: credits || [],
     isLoadingProjects: projectsLoading,
     isLoadingUserProjects: userProjectsLoading,
     isLoadingListings: listingsLoading,
     isLoadingCredits: creditsLoading,
-    createProject: createProjectMutation.mutate,
-    mintCredits: mintCreditsMutation.mutate,
-    createListing: createListingMutation.mutate,
-    buyCredits: buyCreditsMutation.mutate,
+    createProject: createProjectMutation.mutate as any,
+    mintCredits: mintCreditsMutation.mutate as any,
+    createListing: createListingMutation.mutate as any,
+    buyCredits: buyCreditsMutation.mutate as any,
     // Mutation states
     isCreatingProject: createProjectMutation.isPending,
     isMintingCredits: mintCreditsMutation.isPending,
