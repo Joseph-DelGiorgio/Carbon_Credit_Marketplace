@@ -260,32 +260,41 @@ export const useProjects = (filters?: ProjectFilters) => {
       // For now, we'll use a timestamp-based ID since the effects structure is complex
       const projectId = `project_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       
-      if (projectId) {
-        // Create a new project object from the form data
-        const newProject: CarbonProject = {
-          id: projectId,
-          name: variables.name,
-          description: variables.description,
-          location: variables.location,
-          project_type: variables.projectType,
-          developer: account?.address || '',
-          total_credits: variables.totalCredits,
-          available_credits: variables.totalCredits, // Initially all credits are available
-          price_per_credit: variables.pricePerCredit,
-          verified: false, // New projects start as unverified
-          created_at: Date.now(),
-          metadata: variables.metadata
-        };
-        
-        // Add the new project to the dynamic projects list
-        setDynamicProjects(prev => [...prev, newProject]);
-        
-        console.log('Added new project to dynamic projects:', newProject);
-      }
+      // Create a new project object from the form data
+      const newProject: CarbonProject = {
+        id: projectId,
+        name: variables.name,
+        description: variables.description,
+        location: variables.location,
+        project_type: variables.projectType,
+        developer: account?.address || '',
+        total_credits: variables.totalCredits,
+        available_credits: variables.totalCredits, // Initially all credits are available
+        price_per_credit: variables.pricePerCredit,
+        verified: false, // New projects start as unverified
+        created_at: Date.now(),
+        metadata: variables.metadata
+      };
       
-      // Invalidate queries to refresh the data
+      // Add the new project to the dynamic projects list
+      setDynamicProjects(prev => {
+        const updated = [...prev, newProject];
+        console.log('Updated dynamic projects:', updated);
+        return updated;
+      });
+      
+      console.log('Added new project to dynamic projects:', newProject);
+      
+      // Force a refetch of user projects by invalidating the query
+      queryClient.invalidateQueries({ queryKey: ['userProjects', account?.address] });
       queryClient.invalidateQueries({ queryKey: ['projects'] });
-      queryClient.invalidateQueries({ queryKey: ['userProjects'] });
+      
+      // Also update the query cache directly to ensure immediate UI update
+      queryClient.setQueryData(['userProjects', account?.address], (oldData: CarbonProject[] = []) => {
+        const newData = [...oldData, newProject];
+        console.log('Updated query cache with new project:', newData);
+        return newData;
+      });
     },
   });
 
