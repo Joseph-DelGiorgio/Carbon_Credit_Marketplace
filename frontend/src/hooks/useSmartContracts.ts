@@ -101,6 +101,20 @@ export const useSmartContracts = () => {
       metadata: string;
     }) => {
       if (!account?.address) throw new Error('Wallet not connected');
+      
+      console.log('Creating project with:', { 
+        name, 
+        description, 
+        location, 
+        projectType, 
+        totalCredits, 
+        pricePerCredit,
+        coBenefits,
+        sdgGoals,
+        fundingGoal,
+        metadata
+      });
+      
       const tx = new Transaction();
       tx.moveCall({
         target: `${PACKAGE_ID}::${CARBON_CREDIT_MODULE}::create_project`,
@@ -111,13 +125,33 @@ export const useSmartContracts = () => {
           tx.pure.string(description),
           tx.pure.u64(totalCredits),
           tx.pure.u64(Math.floor(pricePerCredit * 1000000000)), // Convert SUI to MIST (9 decimal places)
-          tx.pure.string(JSON.stringify(coBenefits)), // Convert array to JSON string
-          tx.pure.string(JSON.stringify(sdgGoals)), // Convert array to JSON string
+          tx.pure.vector('string', coBenefits), // Convert to vector of strings
+          tx.pure.vector('u8', sdgGoals), // Convert to vector of u8
           tx.pure.u64(Math.floor(fundingGoal * 1000000000)), // Convert SUI to MIST
           tx.pure.string(metadata)
         ]
       });
-      return signAndExecute({ transaction: tx });
+      
+      console.log('Transaction created:', tx);
+      
+      try {
+        const result = await signAndExecute({ transaction: tx });
+        console.log('Create project result:', result);
+        return result;
+      } catch (error: any) {
+        console.error('Create project transaction failed:', error);
+        // Log more details about the error
+        if (error?.message) {
+          console.error('Error message:', error.message);
+        }
+        if (error?.code) {
+          console.error('Error code:', error.code);
+        }
+        if (error?.data) {
+          console.error('Error data:', error.data);
+        }
+        throw error;
+      }
     }
   });
 

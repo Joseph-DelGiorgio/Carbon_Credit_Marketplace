@@ -5,6 +5,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import MarketplacePage from "./pages/MarketplacePage";
 import DashboardPage from "./pages/DashboardPage";
+import PortfolioPage from "./pages/PortfolioPage";
 import "./styles/index.css";
 
 const queryClient = new QueryClient();
@@ -24,6 +25,7 @@ function App() {
             <Routes>
               <Route path="/" element={<MarketplacePage />} />
               <Route path="/dashboard" element={<DashboardPage />} />
+              <Route path="/portfolio" element={<PortfolioPage />} />
               <Route path="/projects" element={<MarketplacePage />} />
               <Route path="/about" element={<div className="container mx-auto px-4 py-8"><h1 className="text-2xl font-bold mb-4">About Carbon Credit Marketplace</h1><p>This is a decentralized marketplace for trading verified carbon credits on the Sui blockchain.</p></div>} />
             </Routes>
