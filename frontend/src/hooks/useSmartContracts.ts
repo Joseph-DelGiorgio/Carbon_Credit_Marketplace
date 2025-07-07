@@ -188,6 +188,21 @@ export const useSmartContracts = () => {
     }) => {
       if (!account?.address) throw new Error('Wallet not connected');
       
+      // Check if this is a mock listing ID (doesn't start with 0x)
+      if (!listingId.startsWith('0x')) {
+        // This is mock data - simulate the transaction
+        console.log('Using mock implementation for listing:', listingId);
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        return {
+          digest: 'mock-transaction-digest-' + Date.now(),
+          effects: {
+            status: { status: 'success' }
+          }
+        };
+      }
+      
+      // Real blockchain transaction
       const tx = new Transaction();
       
       // Split the required amount of SUI for payment
